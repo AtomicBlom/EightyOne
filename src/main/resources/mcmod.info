@@ -1,0 +1,16 @@
+[
+{
+  "modid": "eightyone",
+  "name": "Eighty One",
+  "description": "Nine by nines for days",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["AtomicBlom"],
+  "credits": "Direwolf20",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
