@@ -1,0 +1,244 @@
+﻿<Page
+    x:Class="RoomEditor.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:RoomEditor.Framework.Converters"
+    xmlns:viewModel="using:RoomEditor.ViewModel"
+    xmlns:model="using:RoomEditor.Model"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance d:Type=viewModel:DesignTimeRoomEditorViewModel, IsDesignTimeCreatable=True}">
+
+    <Page.Resources>
+        <converters:RoomSelectedConverter x:Key="RoomSelectedConverter" Present="Black" NotPresent="LightGray" />
+        <converters:RoomConnectedConverter x:Key="RoomConnectedConverter" Connected="Blue" NotConnected="Red" NotValid="Transparent" />
+        <!--<converters:DebugConverter x:Key="DebugConverter"/>-->
+        <Style x:Key="RoomPreview" TargetType="Border">
+            <Style.Setters>
+                <Setter Property="BorderBrush" Value="Black" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Width" Value="8" />
+                <Setter Property="Height" Value="8" />
+                <Setter Property="Margin" Value="0,0,2,2"></Setter>
+            </Style.Setters>
+        </Style>
+        <Style x:Key="Room" TargetType="Border">
+            <Style.Setters>
+                <Setter Property="BorderBrush" Value="Black" />
+                <Setter Property="BorderThickness" Value="4" />
+                <Setter Property="Width" Value="48" />
+                <Setter Property="Height" Value="48" />
+                <Setter Property="Margin" Value="0,0,4,4"></Setter>
+            </Style.Setters>
+        </Style>
+
+        <Style x:Key="BaseRoomStyle" TargetType="ItemsControl">
+            <Style.Setters>
+                <Setter Property="Margin" Value="4" />
+                <Setter Property="ItemsPanel">
+                    <Setter.Value>
+                        <ItemsPanelTemplate>
+                            <WrapGrid Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+        </Style>
+
+        <Style x:Key="RoomButton" TargetType="ToggleButton">
+            <Style.Setters>
+                <Setter Property="BorderBrush" Value="Black" />
+                <Setter Property="BorderThickness" Value="4" />
+                <Setter Property="Width" Value="48" />
+                <Setter Property="Height" Value="48" />
+                <Setter Property="Margin" Value="0,0,4,4" />
+            </Style.Setters>
+        </Style>
+
+        <Style x:Key="SelectedRoomStyle" TargetType="ItemsControl" BasedOn="{StaticResource BaseRoomStyle}">
+            
+        </Style>
+        
+        <Style x:Key="TestRoomStyle" TargetType="ItemsControl" BasedOn="{StaticResource BaseRoomStyle}">
+            <Style.Setters>
+                <Setter Property="Opacity" Value="0.8" />
+                <Setter Property="ItemTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <Border d:DataContext="{d:DesignInstance d:Type=model:EditableRoom}" Background="{Binding Present, Converter={StaticResource RoomSelectedConverter}, Mode=OneWay}" Style="{StaticResource Room}" />
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+        </Style>
+        
+        <Style x:Key="NorthRoomConnectionStyle" TargetType="Line">
+            <Style.Setters>
+                <Setter Property="Margin" Value="4, 0, -1, 0" />
+                <Setter Property="StrokeThickness" Value="2" />
+                <Setter Property="X1" Value="1" />
+                <Setter Property="X2" Value="48" />
+                <Setter Property="Y1" Value="1" />
+                <Setter Property="Y2" Value="1" />
+            </Style.Setters>
+        </Style>
+        <Style x:Key="SouthRoomConnectionStyle" TargetType="Line">
+            <Style.Setters>
+                <Setter Property="Margin" Value="4, 0, -1, 0" />
+                <Setter Property="StrokeThickness" Value="2" />
+                <Setter Property="X1" Value="1" />
+                <Setter Property="X2" Value="48" />
+                <Setter Property="Y1" Value="48" />
+                <Setter Property="Y2" Value="48" />
+            </Style.Setters>
+        </Style>
+        <Style x:Key="EastRoomConnectionStyle" TargetType="Line">
+            <Style.Setters>
+                <Setter Property="Margin" Value="0, 4, 0, -1" />
+                <Setter Property="StrokeThickness" Value="2" />
+                <Setter Property="X1" Value="48" />
+                <Setter Property="X2" Value="48" />
+                <Setter Property="Y1" Value="1" />
+                <Setter Property="Y2" Value="48" />
+            </Style.Setters>
+        </Style>
+        <Style x:Key="WestRoomConnectionStyle" TargetType="Line">
+            <Style.Setters>
+                <Setter Property="Margin" Value="0, 4, 0, -1" />
+                <Setter Property="StrokeThickness" Value="2" />
+                <Setter Property="X1" Value="1" />
+                <Setter Property="X2" Value="1" />
+                <Setter Property="Y1" Value="1" />
+                <Setter Property="Y2" Value="48" />
+            </Style.Setters>
+        </Style>
+    </Page.Resources>
+    
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Vertical" Margin="16,8,16,16" Width="200">
+            <Button Content="Load" Command="{Binding LoadRoomSetsCommand}" Width="200" Margin="0,0,0,4" />
+            <Button Content="Save" Command="{Binding SaveRoomSetsCommand}" Width="200" Margin="0,0,0,4" />
+            <Button Content="Add New" Command="{Binding AddNewRoomCommand}" Width="200"  Margin="0,0,0,8" />
+            <ListView ItemsSource="{Binding RoomProfiles}" SelectedItem="{Binding CurrentRoomProfile, Mode=TwoWay}" SelectionMode="Single" IsItemClickEnabled="True" ItemClick="ListViewBase_OnItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ItemsControl ItemsSource="{Binding Rooms, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapGrid Width="32" Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding Present,Converter={StaticResource RoomSelectedConverter}, Mode=OneWay}" Style="{StaticResource RoomPreview}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Name, Mode=OneWay}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="16">
+            <TextBlock Text="Room Name:" VerticalAlignment="Center" Margin="0,0,4,0" />
+            <TextBox Text="{Binding CurrentRoomProfile.Name, Mode=TwoWay}" Width="200" />
+        </StackPanel>
+        <Grid Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="168" />
+                <ColumnDefinition Width="168"/>
+                <ColumnDefinition Width="168"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="168" />
+                <RowDefinition Height="168" />
+                <RowDefinition Height="168"/>
+            </Grid.RowDefinitions>
+            <!-- Room Connections Display -->
+            <RelativePanel Grid.Column="1" Grid.Row="1" Margin="0,0,8,8">
+                <ItemsControl RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True" ItemsSource="{Binding NorthSideConnections}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Line Style="{StaticResource NorthRoomConnectionStyle}" Stroke="{Binding Converter={StaticResource RoomConnectedConverter}, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ItemsControl RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" ItemsSource="{Binding SouthSideConnections}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Line Style="{StaticResource SouthRoomConnectionStyle}" Stroke="{Binding Converter={StaticResource RoomConnectedConverter}, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True" ItemsSource="{Binding WestSideConnections}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Line Style="{StaticResource WestRoomConnectionStyle}" Stroke="{Binding Converter={StaticResource RoomConnectedConverter}, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignRightWithPanel="True" ItemsSource="{Binding EastSideConnections}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Line Style="{StaticResource EastRoomConnectionStyle}" Stroke="{Binding Converter={StaticResource RoomConnectedConverter}, Mode=OneWay}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </RelativePanel>
+            
+            <!-- Live room -->
+            <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding CurrentRoomProfile.Rooms, Mode=OneWay}" Style="{StaticResource SelectedRoomStyle}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ToggleButton IsChecked="{Binding Present, Mode=TwoWay}" Style="{StaticResource RoomButton}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            
+            <!-- Test Room ghosts -->
+            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding TestRoomProfile.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
+            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding TestRoomProfile.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
+            <ItemsControl Grid.Column="2" Grid.Row="1" ItemsSource="{Binding TestRoomProfile.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
+            <ItemsControl Grid.Column="1" Grid.Row="2" ItemsSource="{Binding TestRoomProfile.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
+        </Grid>
+    </Grid>
+</Page>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
