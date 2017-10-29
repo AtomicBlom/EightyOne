@@ -1,0 +1,66 @@
+{
+  "Width": 3,
+  "Height": 3,
+  "RoomSets": [
+    {
+      "Id": 0,
+      "Name": "U",
+      "PresentRooms": [
+        true,
+        false,
+        true,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "Id": 1,
+      "Name": "S",
+      "PresentRooms": [
+        false,
+        true,
+        true,
+        false,
+        true,
+        false,
+        true,
+        true,
+        false
+      ]
+    },
+    {
+      "Id": 2,
+      "Name": "T",
+      "PresentRooms": [
+        true,
+        true,
+        true,
+        false,
+        true,
+        false,
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Axe",
+      "PresentRooms": [
+        true,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  ]
+}
