@@ -7,18 +7,18 @@ namespace RoomEditor.ViewModel
     {
         public DesignTimeRoomEditorViewModel()
         {
-            RoomProfiles.Add(new RoomProfile
+            RoomProfiles.Add(new RoomSet
             {
-                Name = "U",
+                Name = "Room U",
                 Rooms = new []
                     {
                         true, false, true,
                         true, false, true,
                         true, true, true
-                    }.Select((value, index) => new EditableRoom(index % RoomSize, index / RoomSize, value))
+                    }.Select((value, index) => new Room(index % RoomSize, index / RoomSize, value))
                     .ToArray()
             });
-            RoomProfiles.Add(new RoomProfile
+            RoomProfiles.Add(new RoomSet
             {
                 Name = "T",
                 Rooms = new []
@@ -26,12 +26,23 @@ namespace RoomEditor.ViewModel
                         true, true, true,
                         false, true, false,
                         false, true, false
-                    }.Select((value, index) => new EditableRoom(index % RoomSize, index / RoomSize, value))
+                    }.Select((value, index) => new Room(index % RoomSize, index / RoomSize, value))
+                    .ToArray()
+            });
+            RoomProfiles.Add(new RoomSet
+            {
+                Name = "V",
+                Rooms = new[]
+                    {
+                        true, false, true,
+                        true, false, true,
+                        false, true, false
+                    }.Select((value, index) => new Room(index % RoomSize, index / RoomSize, value))
                     .ToArray()
             });
 
-            this.CurrentRoomProfile = RoomProfiles.First();
-            this.TestRoomProfile = RoomProfiles.Last();
+            this.CurrentRoomSet = RoomProfiles.First();
+            this.TestRoomSet = RoomProfiles.Last();
         }
     }
 }

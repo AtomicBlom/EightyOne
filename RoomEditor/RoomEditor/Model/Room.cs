@@ -2,11 +2,11 @@ using RoomEditor.Framework;
 
 namespace RoomEditor.Model
 {
-    public class EditableRoom : BindableBase
+    public class Room : BindableBase
     {
         private bool _present;
 
-        public EditableRoom(int x, int z, bool present)
+        public Room(int x, int z, bool present)
         {
             X = x;
             Z = z;

@@ -10,7 +10,7 @@ namespace RoomEditor.Services
 {
     public class FileService
     {
-        public async Task SaveRooms(int width, int height, IEnumerable<RoomProfile> rooms)
+        public async Task SaveRooms(int width, int height, IEnumerable<RoomSet> rooms)
         {
             var roomSetFile = new IORoomSetFile
             {
@@ -36,7 +36,7 @@ namespace RoomEditor.Services
             await FileIO.WriteTextAsync(storageFile, JsonConvert.SerializeObject(roomSetFile, Formatting.Indented));
         }
 
-        public async Task<IEnumerable<RoomProfile>> LoadRooms()
+        public async Task<IEnumerable<RoomSet>> LoadRooms()
         {
             //Create the text file to hold the data
             var storageFolder = ApplicationData.Current.LocalFolder;
@@ -49,11 +49,11 @@ namespace RoomEditor.Services
             var width = ioRoomSetFile.Width;
             var height = ioRoomSetFile.Height;
 
-            return ioRoomSetFile.RoomSets.Select(_ => new RoomProfile
+            return ioRoomSetFile.RoomSets.Select(_ => new RoomSet
             {
                 Id = _.Id,
                 Name = _.Name,
-                Rooms = _.PresentRooms.Select((value, index) => new EditableRoom(index % width, index / height, value)).ToArray()
+                Rooms = _.PresentRooms.Select((value, index) => new Room(index % width, index / height, value)).ToArray()
             });
         }
     }

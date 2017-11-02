@@ -15,17 +15,17 @@ namespace RoomEditor.ViewModel
     public class RoomEditorViewModel : BindableBase
     {
         protected const int RoomSize = 3;
-        private RoomProfile _currentRoomProfile;
+        private RoomSet _currentRoomSet;
         private int _nextRoomId;
 
-        private ObservableCollection<RoomProfile> _roomProfiles;
-        private ObservableCollection<RoomProfile> _selectedRoomProfiles;
-        private RoomProfile _testRoomProfile;
+        private ObservableCollection<RoomSet> _roomProfiles;
+        private ObservableCollection<RoomSet> _selectedRoomProfiles;
+        private RoomSet _testRoomSet;
 
         public RoomEditorViewModel()
         {
-            RoomProfiles = new ObservableCollection<RoomProfile>();
-            SelectedRoomProfiles = new ObservableCollection<RoomProfile>();
+            RoomProfiles = new ObservableCollection<RoomSet>();
+            SelectedRoomProfiles = new ObservableCollection<RoomSet>();
             SelectedRoomProfiles.CollectionChanged += SelectedItemsOnCollectionChanged;
             AddNewRoomCommand = new DelegateCommand(ExecuteAddNewRoom);
             SaveRoomSetsCommand = new DelegateCommand(ExecuteSaveRoomSets);
@@ -36,72 +36,72 @@ namespace RoomEditor.ViewModel
         public ICommand SaveRoomSetsCommand { get; set; }
         public ICommand LoadRoomSetsCommand { get; set; }
 
-        public ObservableCollection<RoomProfile> RoomProfiles
+        public ObservableCollection<RoomSet> RoomProfiles
         {
             get => _roomProfiles;
             private set => SetField(ref _roomProfiles, value);
         }
 
-        public ObservableCollection<RoomProfile> SelectedRoomProfiles
+        public ObservableCollection<RoomSet> SelectedRoomProfiles
         {
             get => _selectedRoomProfiles;
             set => SetField(ref _selectedRoomProfiles, value);
         }
 
-        public RoomProfile CurrentRoomProfile
+        public RoomSet CurrentRoomSet
         {
-            get => _currentRoomProfile;
+            get => _currentRoomSet;
             set
             {
-                if (SetField(ref _currentRoomProfile, value))
+                if (SetField(ref _currentRoomSet, value))
                     UpdateRoomConnections();
             }
         }
 
-        public RoomProfile TestRoomProfile
+        public RoomSet TestRoomSet
         {
-            get => _testRoomProfile;
+            get => _testRoomSet;
             set
             {
-                if (SetField(ref _testRoomProfile, value))
+                if (SetField(ref _testRoomSet, value))
                     UpdateRoomConnections();
             }
         }
 
         public IEnumerable<bool> NorthSideConnections => Enumerable.Range(0, RoomSize)
-            .Select(i => IsRoomEnabled(CurrentRoomProfile, i, 0) && IsRoomEnabled(TestRoomProfile, i, RoomSize - 1));
+            .Select(i => IsRoomEnabled(CurrentRoomSet, i, 0) && IsRoomEnabled(TestRoomSet, i, RoomSize - 1));
 
         public bool IsNorthSideValid => NorthSideConnections.Any(_ => _);
 
         public IEnumerable<bool> SouthSideConnections => Enumerable.Range(0, RoomSize)
-            .Select(i => IsRoomEnabled(CurrentRoomProfile, i, RoomSize - 1) && IsRoomEnabled(TestRoomProfile, i, 0));
+            .Select(i => IsRoomEnabled(CurrentRoomSet, i, RoomSize - 1) && IsRoomEnabled(TestRoomSet, i, 0));
 
         public bool IsSouthSideValid => SouthSideConnections.Any(_ => _);
 
         public IEnumerable<bool> EastSideConnections => Enumerable.Range(0, RoomSize)
-            .Select(i => IsRoomEnabled(CurrentRoomProfile, RoomSize - 1, i) && IsRoomEnabled(TestRoomProfile, 0, i));
+            .Select(i => IsRoomEnabled(CurrentRoomSet, RoomSize - 1, i) && IsRoomEnabled(TestRoomSet, 0, i));
 
         public bool IsEastSideValid => EastSideConnections.Any(_ => _);
 
         public IEnumerable<bool> WestSideConnections => Enumerable.Range(0, RoomSize)
-            .Select(i => IsRoomEnabled(CurrentRoomProfile, 0, i) && IsRoomEnabled(TestRoomProfile, RoomSize - 1, i));
+            .Select(i => IsRoomEnabled(CurrentRoomSet, 0, i) && IsRoomEnabled(TestRoomSet, RoomSize - 1, i));
 
         public bool IsWestSideValid => WestSideConnections.Any(_ => _);
 
         private void SelectedItemsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs notifyCollectionChangedEventArgs)
         {
-            CurrentRoomProfile = notifyCollectionChangedEventArgs.NewItems.OfType<RoomProfile>().FirstOrDefault();
+            CurrentRoomSet = notifyCollectionChangedEventArgs.NewItems.OfType<RoomSet>().FirstOrDefault();
         }
 
         private void ExecuteAddNewRoom()
         {
             var roomId = _nextRoomId++;
-            var roomProfile = new RoomProfile
+            var roomProfile = new RoomSet
             {
                 Id = roomId,
                 Name = $"New Room {roomId}",
                 Rooms = Enumerable.Range(0, RoomSize * RoomSize)
-                    .Select(value => new EditableRoom(value % RoomSize, value / RoomSize, false))
+                    .Select(value => new Room(value % RoomSize, value / RoomSize, false))
                     .ToArray()
             };
 
@@ -109,10 +109,10 @@ namespace RoomEditor.ViewModel
                 roomProfileRoom.PropertyChanged += OnRoomChanged;
 
             RoomProfiles.Add(roomProfile);
-            CurrentRoomProfile = roomProfile;
+            CurrentRoomSet = roomProfile;
             if (RoomProfiles.Count == 1)
             {
-                TestRoomProfile = RoomProfiles.Single();
+                TestRoomSet = RoomProfiles.Single();
             }
         }
 
@@ -163,9 +163,9 @@ namespace RoomEditor.ViewModel
             RaisePropertyChanged(nameof(IsWestSideValid));
         }
 
-        private bool IsRoomEnabled(RoomProfile roomProfile, int x, int z)
+        private bool IsRoomEnabled(RoomSet roomSet, int x, int z)
         {
-            return roomProfile?.Rooms[z * RoomSize + x].Present ?? false;
+            return roomSet?.Rooms[z * RoomSize + x].Present ?? false;
         }
     }
 }

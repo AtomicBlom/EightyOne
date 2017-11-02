@@ -2,7 +2,7 @@ using RoomEditor.Framework;
 
 namespace RoomEditor.Model
 {
-    public class RoomProfile : BindableBase
+    public class RoomSet : BindableBase
     {
         private string _name;
 
@@ -12,7 +12,7 @@ namespace RoomEditor.Model
             set => SetField(ref _name, value);
         }
 
-        public EditableRoom[] Rooms { get; set; }
+        public Room[] Rooms { get; set; }
         public int Id { get; set; }
     }
 }

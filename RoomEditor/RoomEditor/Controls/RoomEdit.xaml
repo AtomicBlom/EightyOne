@@ -1,0 +1,40 @@
+﻿<UserControl
+    x:Class="RoomEditor.Controls.RoomEdit"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:RoomEditor.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+    <UserControl.Resources>
+        <Style x:Key="RoomButton" TargetType="ToggleButton">
+            <Style.Setters>
+                <Setter Property="BorderBrush" Value="Black" />
+                <Setter Property="BorderThickness" Value="4" />
+                <Setter Property="Width" Value="48" />
+                <Setter Property="Height" Value="48" />
+                <Setter Property="Margin" Value="0,0,4,4" />
+            </Style.Setters>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <ItemsControl ItemsSource="{x:Bind WrappedRooms, Mode=OneWay}" Margin="4">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapGrid Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <ToggleButton IsChecked="{Binding IsPresent, Mode=TwoWay}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                                  BorderBrush="Black" BorderThickness="4" 
+                                  Width="{x:Bind ItemWidth, Mode=OneWay}" Height="{x:Bind ItemHeight, Mode=OneWay}" 
+                                  Margin="2"
+                                  />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</UserControl>
