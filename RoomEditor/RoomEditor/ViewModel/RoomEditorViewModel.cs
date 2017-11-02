@@ -21,6 +21,10 @@ namespace RoomEditor.ViewModel
         private ObservableCollection<RoomSet> _roomProfiles;
         private ObservableCollection<RoomSet> _selectedRoomProfiles;
         private RoomSet _testRoomSet;
+        private RoomSetPatch _northRoomSetPatch;
+        private RoomSetPatch _eastRoomSetPatch;
+        private RoomSetPatch _westRoomSetPatch;
+        private RoomSetPatch _southRoomSetPatch;
 
         public RoomEditorViewModel()
         {
@@ -48,13 +52,78 @@ namespace RoomEditor.ViewModel
             set => SetField(ref _selectedRoomProfiles, value);
         }
 
+        public RoomSetPatch NorthRoomSetPatch
+        {
+            get => _northRoomSetPatch;
+            set {
+                if (SetField(ref _northRoomSetPatch, value))
+                {
+                    UpdateRoomConnections();
+                }
+            }
+        }
+
+        public RoomSetPatch EastRoomSetPatch
+        {
+            get => _eastRoomSetPatch;
+            set
+            {
+                if (SetField(ref _eastRoomSetPatch, value))
+                {
+                    UpdateRoomConnections();
+                }
+            }
+        }
+
+        public RoomSetPatch WestRoomSetPatch
+        {
+            get => _westRoomSetPatch;
+            set
+            {
+                if (SetField(ref _westRoomSetPatch, value))
+                {
+                    UpdateRoomConnections();
+                }
+            }
+        }
+
+        public RoomSetPatch SouthRoomSetPatch
+        {
+            get => _southRoomSetPatch;
+            set
+            {
+                if (SetField(ref _southRoomSetPatch, value))
+                {
+                    UpdateRoomConnections();
+                }
+            }
+        }
+
         public RoomSet CurrentRoomSet
         {
             get => _currentRoomSet;
             set
             {
+                var _previousValue = _currentRoomSet;
                 if (SetField(ref _currentRoomSet, value))
+                {
+                    if (_previousValue != null)
+                    {
+                        foreach (var roomProfileRoom in _previousValue.Rooms)
+                            roomProfileRoom.PropertyChanged -= OnRoomChanged;
+                    }
+                    if (_currentRoomSet != null)
+                    {
+                        foreach (var roomProfileRoom in _currentRoomSet.Rooms)
+                            roomProfileRoom.PropertyChanged += OnRoomChanged;
+                    }
+
+                    if (TestRoomSet == null)
+                    {
+                        TestRoomSet = value;
+                    }
                     UpdateRoomConnections();
+                }
             }
         }
 
@@ -104,9 +173,6 @@ namespace RoomEditor.ViewModel
                     .Select(value => new Room(value % RoomSize, value / RoomSize, false))
                     .ToArray()
             };
-
-            foreach (var roomProfileRoom in roomProfile.Rooms)
-                roomProfileRoom.PropertyChanged += OnRoomChanged;
 
             RoomProfiles.Add(roomProfile);
             CurrentRoomSet = roomProfile;

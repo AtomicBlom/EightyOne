@@ -16,11 +16,18 @@ namespace RoomEditor.Controls
         public RoomEdit()
         {
             InitializeComponent();
+            SizeChanged += (o, e) => RecalculateSize();
+        }
+
+        private void RecalculateSize()
+        {
+            ItemWidth = (int)((ActualWidth - (3 * 8)) / 3);
+            ItemHeight = (int)((ActualHeight - (3 * 8)) / 3);
         }
 
 
         public static readonly DependencyProperty RoomsProperty = DependencyProperty.Register(
-            "Rooms", typeof(IEnumerable<Room>), typeof(RoomEdit), new PropertyMetadata(default(IEnumerable<Room>)));
+            "Rooms", typeof(IEnumerable<Room>), typeof(RoomEdit), new PropertyMetadata(default(IEnumerable<Room>), (o, args) => ((RoomEdit)o).CreateWrappedRooms()));
 
         public IEnumerable<Room> Rooms
         {
@@ -32,8 +39,18 @@ namespace RoomEditor.Controls
             }
         }
 
+        public static readonly DependencyProperty IsEditableProperty = DependencyProperty.Register(
+            "IsEditable", typeof(bool), typeof(RoomEdit), new PropertyMetadata(default(bool)));
+
+        public bool IsEditable
+        {
+            get => (bool) GetValue(IsEditableProperty);
+            set => SetValue(IsEditableProperty, value);
+        }
+
+
         public static readonly DependencyProperty RoomPatchesProperty = DependencyProperty.Register(
-            "RoomPatches", typeof(IEnumerable<PatchedRoom>), typeof(RoomEdit), new PropertyMetadata(default(IEnumerable<PatchedRoom>)));
+            "RoomPatches", typeof(IEnumerable<PatchedRoom>), typeof(RoomEdit), new PropertyMetadata(default(IEnumerable<PatchedRoom>), (o, args) => ((RoomEdit)o).CreateWrappedRooms()));
 
         public IEnumerable<PatchedRoom> RoomPatches
         {
@@ -45,26 +62,44 @@ namespace RoomEditor.Controls
             }
         }
 
-        private int ItemWidth => (int) ((ActualWidth - (3 * 4)) / 3);
-        private int ItemHeight => (int)((ActualHeight - (3 * 4)) / 3);
+        public static readonly DependencyProperty ItemHeightProperty = DependencyProperty.Register(
+            "ItemHeight", typeof(int), typeof(RoomEdit), new PropertyMetadata(default(int)));
 
-        private ObservableCollection<WrappedRoom> WrappedRooms => new ObservableCollection<WrappedRoom>();
+        public int ItemHeight
+        {
+            get => (int) GetValue(ItemHeightProperty);
+            set => SetValue(ItemHeightProperty, value);
+        }
+
+        public static readonly DependencyProperty ItemWidthProperty = DependencyProperty.Register(
+            "ItemWidth", typeof(int), typeof(RoomEdit), new PropertyMetadata(default(int)));
+
+        public int ItemWidth
+        {
+            get => (int) GetValue(ItemWidthProperty);
+            set => SetValue(ItemWidthProperty, value);
+        }
+
+        //public ObservableCollection<WrappedRoom> WrappedRooms => new ObservableCollection<WrappedRoom>();
 
         private void CreateWrappedRooms()
         {
+            //RecalculateSize();
+
             var rooms = Rooms.ToArray();
             var overrides = RoomPatches?.ToArray();
             Debug.Assert(overrides == null || rooms.Length == overrides.Length);
 
-            WrappedRooms.Clear();
-            for (var i = 0; i < rooms.Length; i++)
+            var wrappedRooms = Rooms.Select((room, index) => new WrappedRoom(room, overrides?[index])).ToList();
+            Items?.Items?.Clear();
+            foreach (var wrappedRoom in wrappedRooms)
             {
-                WrappedRooms.Add(new WrappedRoom(rooms[i], overrides?[i]));
+                Items?.Items?.Add(wrappedRoom);
             }
         }
     }
 
-    internal class WrappedRoom : BindableBase
+    public class WrappedRoom : BindableBase
     {
         private readonly Room _room;
         private readonly PatchedRoom _roomPatch;

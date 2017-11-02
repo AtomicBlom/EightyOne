@@ -7,20 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:DesignHeight="300"
-    d:DesignWidth="400">
-    <UserControl.Resources>
-        <Style x:Key="RoomButton" TargetType="ToggleButton">
-            <Style.Setters>
-                <Setter Property="BorderBrush" Value="Black" />
-                <Setter Property="BorderThickness" Value="4" />
-                <Setter Property="Width" Value="48" />
-                <Setter Property="Height" Value="48" />
-                <Setter Property="Margin" Value="0,0,4,4" />
-            </Style.Setters>
-        </Style>
-    </UserControl.Resources>
+    d:DesignWidth="400"
+    Padding="0" Margin="0"
+    x:Name="UserControl">
     <Grid>
-        <ItemsControl ItemsSource="{x:Bind WrappedRooms, Mode=OneWay}" Margin="4">
+        <ItemsControl x:Name="Items"  Margin="4">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapGrid Orientation="Horizontal"/>
@@ -28,9 +19,9 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsPresent, Mode=TwoWay}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                    <ToggleButton IsChecked="{Binding IsPresent, Mode=TwoWay}" IsHitTestVisible="{Binding IsEditable, ElementName=UserControl, Mode=OneWay}"
                                   BorderBrush="Black" BorderThickness="4" 
-                                  Width="{x:Bind ItemWidth, Mode=OneWay}" Height="{x:Bind ItemHeight, Mode=OneWay}" 
+                                  Width="{Binding ItemWidth, ElementName=UserControl, Mode=OneWay}" Height="{Binding ItemHeight, ElementName=UserControl, Mode=OneWay}" 
                                   Margin="2"
                                   />
                 </DataTemplate>

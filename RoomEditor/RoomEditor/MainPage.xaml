@@ -7,6 +7,7 @@
     xmlns:converters="using:RoomEditor.Framework.Converters"
     xmlns:viewModel="using:RoomEditor.ViewModel"
     xmlns:model="using:RoomEditor.Model"
+    xmlns:controls="using:RoomEditor.Controls"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance d:Type=viewModel:DesignTimeRoomEditorViewModel, IsDesignTimeCreatable=True}">
 
@@ -167,7 +168,7 @@
                 <RowDefinition Height="168"/>
             </Grid.RowDefinitions>
             <!-- Room Connections Display -->
-            <RelativePanel Grid.Column="1" Grid.Row="1" Margin="0,0,8,8">
+            <RelativePanel Grid.Column="1" Grid.Row="1" Margin="2,2,6,6">
                 <ItemsControl RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True" ItemsSource="{Binding NorthSideConnections}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -211,19 +212,13 @@
             </RelativePanel>
             
             <!-- Live room -->
-            <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding CurrentRoomSet.Rooms, Mode=OneWay}" Style="{StaticResource SelectedRoomStyle}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <ToggleButton IsChecked="{Binding Present, Mode=TwoWay}" Style="{StaticResource RoomButton}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            
+            <controls:RoomEdit Grid.Column="1" Grid.Row="1" Rooms="{Binding CurrentRoomSet.Rooms, Mode=OneWay}" IsEditable="True" />
+
             <!-- Test Room ghosts -->
-            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding TestRoomSet.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
-            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding TestRoomSet.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
-            <ItemsControl Grid.Column="2" Grid.Row="1" ItemsSource="{Binding TestRoomSet.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
-            <ItemsControl Grid.Column="1" Grid.Row="2" ItemsSource="{Binding TestRoomSet.Rooms, Mode=OneWay}" Style="{StaticResource TestRoomStyle}" />
+            <controls:RoomEdit Grid.Column="1" Grid.Row="0" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding NorthRoomSetPatch, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="0" Grid.Row="1" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding WestRoomSetPatch, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="2" Grid.Row="1" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding EastRoomSetPatch, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="1" Grid.Row="2" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding SouthRoomSetPatch, Mode=OneWay}" IsEditable="False" />
         </Grid>
     </Grid>
 </Page>
