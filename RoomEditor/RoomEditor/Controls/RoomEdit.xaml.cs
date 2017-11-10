@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Windows.UI.Xaml;
 using RoomEditor.Framework;
 using RoomEditor.Model;
-
-// The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace RoomEditor.Controls
 {
@@ -85,13 +81,14 @@ namespace RoomEditor.Controls
         private void CreateWrappedRooms()
         {
             //RecalculateSize();
-
+            Items?.Items?.Clear();
+            if (Rooms == null || !Rooms.Any()) return;
             var rooms = Rooms.ToArray();
             var overrides = RoomPatches?.ToArray();
             Debug.Assert(overrides == null || rooms.Length == overrides.Length);
 
             var wrappedRooms = Rooms.Select((room, index) => new WrappedRoom(room, overrides?[index])).ToList();
-            Items?.Items?.Clear();
+            
             foreach (var wrappedRoom in wrappedRooms)
             {
                 Items?.Items?.Add(wrappedRoom);

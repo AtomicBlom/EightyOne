@@ -49,5 +49,13 @@ namespace RoomEditor
                 v.CurrentRoomSet = (RoomSet) e.ClickedItem;
             }
         }
+
+        private void TestRoom_OnItemClick(object sender, ItemClickEventArgs e)
+        {
+            if (DataContext is ViewModel.RoomEditorViewModel v)
+            {
+                v.TestRoomSet = (TestRoomSet)e.ClickedItem;
+            }
+        }
     }
 }
