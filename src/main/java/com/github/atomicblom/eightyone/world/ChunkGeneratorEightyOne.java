@@ -1,7 +1,6 @@
 package com.github.atomicblom.eightyone.world;
 
 import com.github.atomicblom.eightyone.util.Point2D;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -16,7 +15,6 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
-import org.apache.commons.lang3.concurrent.ConcurrentException;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
@@ -72,7 +70,6 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 		{
 			return roomCache.get(point2D);
 		} catch (final ExecutionException e) {
-
 			return null;
 		}
 	}
@@ -88,10 +85,9 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 			for (int x = 0; x < 16; ++x)
 			{
 				final Room room = getRoomAt(posX + x, posZ + z);
-				if (room.hasProperty(RoomProperties.IsPresent)) continue;
+				if (!room.hasProperty(RoomProperties.IsPresent)) continue;
 				if (room.contains(posX + x, posZ + z))
 				{
-
 					primer.setBlockState(x, 64, z, Blocks.COBBLESTONE.getDefaultState());
 
 					final int xOffset = room.getXOffset(posX + x);
@@ -124,17 +120,11 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 
 		if (world.getChunkFromChunkCoords(chunkX, chunkZ).isPopulated()) return;
 
-		/*if (!world.getChunkProvider().isChunkGeneratedAt(chunkX, chunkZ + 1) ||
-				!world.getChunkProvider().isChunkGeneratedAt(chunkX + 1, chunkZ) ||
-				!world.getChunkProvider().isChunkGeneratedAt(chunkX + 1, chunkZ + 1)) {
-			return;
-		}*/
-
 		int x  = (chunkX << 4);// + 8;
 		int z  = (chunkZ << 4);// + 8;
 
 		final Room room = getRoomAt(x, z);
-		if (room.hasProperty(RoomProperties.IsPresent)) return;
+		if (!room.hasProperty(RoomProperties.IsPresent)) return;
 		if (room.hasProperty(RoomProperties.VerticalExit)) {
 			//Generate Vertical exit
 
@@ -145,10 +135,6 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 
 			world.setBlockState(new BlockPos(room.getX(), 72, room.getZ() + 4), Blocks.DIAMOND_BLOCK.getDefaultState());
 		}
-
-		//populate(chunkX, chunkZ+1);
-		//populate(chunkX+1, chunkZ);
-		//populate(chunkX+1, chunkZ+1);
 
 		BlockFalling.fallInstantly = false;
 	}
@@ -186,14 +172,90 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 
 	private class Point2DRoomCacheLoader extends CacheLoader<Point2D, Room>
 	{
+		List<RoomSet> roomSets = Lists.newArrayList();
+
+		private Point2DRoomCacheLoader() {
+			RoomSet e;
+
+//			e = new RoomSet();
+//			e.presentRooms = new boolean[] {
+//					true, false, false,
+//					false, false, false,
+//					false, false, false
+//			};
+//			roomSets.add(e);
+
+			e = new RoomSet();
+			e.presentRooms = new boolean[] {
+					true, true, true,
+					true, false, true,
+					true, true, true
+			};
+			roomSets.add(e);
+
+			e = new RoomSet();
+			e.presentRooms = new boolean[] {
+					true, true, true,
+					false, false, false,
+					true, true, true
+			};
+			roomSets.add(e);
+
+			e = new RoomSet();
+			e.presentRooms = new boolean[] {
+					true, true, true,
+					false, true, false,
+					false, true, false
+			};
+			roomSets.add(e);
+
+			e = new RoomSet();
+			e.presentRooms = new boolean[] {
+					true, true, false,
+					false, true, false,
+					false, true, true
+			};
+			roomSets.add(e);
+
+			e = new RoomSet();
+			e.presentRooms = new boolean[] {
+					false, true, true,
+					false, true, false,
+					true, true, false
+			};
+			roomSets.add(e);
+		}
+
 		@Override
 		public Room load(Point2D key) throws Exception
 		{
-			double noise = noiseGen.getValue(key.getX(), key.getZ());
-			long properties = Double.doubleToRawLongBits(noise);
+			final int x = key.getX() / 10;
+			final int roomSetX = x / 3;
+			final int z = key.getZ() / 10;
+			final int roomSetZ = z / 3;
+			double noise = noiseGen.getValue(roomSetX, roomSetZ);
+			final int roomSetIndex = (int) (Math.abs(noise) * roomSets.size());
+			RoomSet roomSet = roomSets.get(roomSetIndex);
+			int properties = 0;
+			int roomX = x % 3;
+			if (roomX < 0) roomX += 3;
+			int roomZ = z % 3;
+			if (roomZ < 0) roomZ += 3;
+			if (roomSet.isPresent(roomX, roomZ)) {
+				properties = 12;
+			}
 			final Room result = new Room(roomId, key.getX(), key.getZ(), 9, 9, properties);
 			roomId++;
 			return result;
+		}
+	}
+
+	private class RoomSet {
+		boolean[] presentRooms = new boolean[9];
+
+		public boolean isPresent(int x, int z)
+		{
+			return presentRooms[x * 3 + z];
 		}
 	}
 }
