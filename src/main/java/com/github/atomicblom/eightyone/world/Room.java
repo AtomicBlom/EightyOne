@@ -9,15 +9,18 @@ public class Room
 	private final int z;
 	private final int width;
 	private final int length;
+	private final double templateChance;
 	private final long properties;
+	private String templateName;
 
-	public Room(int id, int x, int z, int width, int length, long properties) {
+	public Room(int id, int x, int z, int width, int length, double templateChance, long properties) {
 
 		this.id = id;
 		this.x = x;
 		this.z = z;
 		this.width = width;
 		this.length = length;
+		this.templateChance = templateChance;
 		this.properties = properties;
 	}
 
@@ -60,5 +63,24 @@ public class Room
 	public int getZOffset(int worldZ)
 	{
 		return worldZ - z;
+	}
+
+	public boolean hasSpecificTemplate()
+	{
+		return templateName != null;
+	}
+
+	public double getTemplateChance()
+	{
+		return templateChance;
+	}
+
+	public void setTemplate(String templateName) {
+
+		this.templateName = templateName;
+	}
+
+	public String getTemplate() {
+		return this.templateName;
 	}
 }

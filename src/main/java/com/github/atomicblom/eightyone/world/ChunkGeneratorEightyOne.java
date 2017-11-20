@@ -1,20 +1,17 @@
 package com.github.atomicblom.eightyone.world;
 
 import com.github.atomicblom.eightyone.util.Point2D;
+import com.github.atomicblom.eightyone.world.structure.StructureProperties;
+import com.github.atomicblom.eightyone.world.structure.TemplateAndProperties;
+import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.datafix.FixTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -27,7 +24,6 @@ import net.minecraft.world.gen.NoiseGeneratorSimplex;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -136,10 +132,10 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 	public void populate(int chunkX, int chunkZ)
 	{
 
+		final PlacementSettings placementSettings = new PlacementSettings();
+		placementSettings.setChunk(new ChunkPos(chunkX, chunkZ));
 
 		BlockFalling.fallInstantly = true;
-
-		if (world.getChunkFromChunkCoords(chunkX, chunkZ).isPopulated()) return;
 
 		final int chunkCornerX  = chunkX << 4;
 		final int chunkCornerZ  = chunkZ << 4;
@@ -239,24 +235,21 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 					}
 				}
 
-				try
+				TemplateAndProperties templateWithProperties;
+				if (room.hasSpecificTemplate()) {
+					templateWithProperties = TemplateManager.getTemplateByName(room.getTemplate());
+				} else {
+					templateWithProperties = TemplateManager.getTemplateByChance(room.getTemplateChance());
+				}
+
+				final Template template = templateWithProperties.getTemplate();
+				final StructureProperties properties = templateWithProperties.getStructureProperties();
+				if (template != null)
 				{
-					final IResource eightyone = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation("eightyone", "structures/minimaze.nbt"));
-					NBTTagCompound nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
-
-					if (!nbttagcompound.hasKey("DataVersion", 99))
-					{
-						nbttagcompound.setInteger("DataVersion", 500);
-					}
-
-					Template template = new Template();
-					template.read(Minecraft.getMinecraft().getDataFixer().process(FixTypes.STRUCTURE, nbttagcompound));
-					final PlacementSettings placementSettings = new PlacementSettings();
-					placementSettings.setChunk(new ChunkPos(chunkX, chunkZ));
-					template.addBlocksToWorldChunk(world, new BlockPos(room.getX()+1, BASE_HEIGHT + 1, room.getZ()+1), placementSettings);
-
-				} catch (IOException exception) {
-
+					template.addBlocksToWorldChunk(
+							world,
+							new BlockPos(room.getX() + 1, BASE_HEIGHT + 1 + properties.yOffset, room.getZ() + 1),
+							placementSettings);
 				}
 			}
 		}
@@ -387,7 +380,7 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 			final int x = key.getX() / 10;
 			final int z = key.getZ() / 10;
 
-			boolean isPresent = isRoomPresent(x, z);
+			final boolean isPresent = isRoomPresent(x, z);
 			int properties = 0;
 
 			if (isPresent) {
@@ -401,7 +394,7 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 				properties |= RoomProperties.HorizontalExit.getBitMask();
 			}
 
-			final Room result = new Room(roomId, key.getX(), key.getZ(), 9, 9, properties);
+			final Room result = new Room(roomId, key.getX(), key.getZ(), 9, 9, noiseGen.getValue(x, z), properties);
 			roomId++;
 			return result;
 		}
