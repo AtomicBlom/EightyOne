@@ -1,220 +1,134 @@
 package com.github.atomicblom.eightyone;
 
-import com.github.atomicblom.eightyone.world.structure.TemplateAndProperties;
-import com.github.atomicblom.eightyone.world.structure.TemplateManager;
+import com.github.atomicblom.eightyone.world.NxNChunkGenerator;
+import com.github.atomicblom.eightyone.world.NxNWorldProvider;
+import com.github.atomicblom.eightyone.world.Room;
+import com.github.atomicblom.eightyone.world.RoomProperties;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Teleporter;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
-import net.minecraft.world.gen.structure.template.PlacementSettings;
 
-public class EightyOneTeleporter extends Teleporter
-{
-	public static EightyOneTeleporter getTeleporterForDim(MinecraftServer server, int dim) {
-		final WorldServer ws = server.getWorld(dim);
+import java.util.Iterator;
 
-		for (final Teleporter t : ws.customTeleporters) {
-			if (t instanceof EightyOneTeleporter) {
-				return (EightyOneTeleporter) t;
-			}
-		}
+public class EightyOneTeleporter extends Teleporter {
+    public static EightyOneTeleporter getTeleporterForDim(MinecraftServer server, int dim) {
+        WorldServer ws = server.getWorld(dim);
 
-		final EightyOneTeleporter tp = new EightyOneTeleporter(ws);
-		ws.customTeleporters.add(tp);
-		return tp;
-	}
+        for (Teleporter t : ws.customTeleporters) {
+            if (t instanceof EightyOneTeleporter) {
+                return (EightyOneTeleporter) t;
+            }
+        }
 
-	private EightyOneTeleporter(WorldServer dest) {
-		super(dest);
-	}
+        EightyOneTeleporter tp = new EightyOneTeleporter(ws);
+        ws.customTeleporters.add(tp);
+        return tp;
+    }
 
-	@Override
-	public void placeInPortal(Entity par1Entity, float facing) {
-		if (!placeInExistingPortal(par1Entity, facing)) {
-			makePortal(par1Entity);
-			placeInExistingPortal(par1Entity, facing);
-		}
-	}
+    private EightyOneTeleporter(WorldServer dest) {
+        super(dest);
+    }
 
-	// [VanillaCopy] copy of super, edits noted
-	@Override
-	public boolean placeInExistingPortal(Entity entity, float rotationYaw) {
-		final int scanRadius = 200; // TF - scan radius up to 200, and also un-inline this variable back into below
-		double distance = -1.0D;
-		final int j = MathHelper.floor(entity.posX);
-		final int k = MathHelper.floor(entity.posZ);
-		boolean flag = true;
-		BlockPos blockpos = BlockPos.ORIGIN;
-		final long l = ChunkPos.asLong(j, k);
+    @Override
+    public boolean makePortal(Entity entityIn) {
+        WorldProvider provider = entityIn.getEntityWorld().provider;
+        BlockPos position = entityIn.getPosition();
+        if (provider instanceof NxNWorldProvider) {
+            NxNChunkGenerator chunkGenerator = (NxNChunkGenerator) provider.createChunkGenerator();
+            Room startingRoom = chunkGenerator.getRoomAt(position.getX(), position.getZ());
+            BlockPos startPos = new BlockPos(startingRoom.getX(), chunkGenerator.getFloorHeight(), startingRoom.getZ());
+            for (BlockPos pos : new SpiralIterable(startPos, 10) ) {
+                Room spawnRoom = chunkGenerator.getRoomAt(pos.getX(), pos.getZ());
+                if (startingRoom.hasProperty(RoomProperties.IsPresent)) {
+                    makePortal(entityIn.world, new BlockPos(pos));
+                    break;
+                }
+            }
+        }
+    }
 
-		if (destinationCoordinateCache.containsKey(l)) {
-			final PortalPosition portalPosition = destinationCoordinateCache.get(l);
-			distance = 0.0D;
-			blockpos = portalPosition;
-			portalPosition.lastUpdateTime = world.getTotalWorldTime();
-			flag = false;
-		} else {
-			final BlockPos entityPosition = new BlockPos(entity);
+    private void makePortal(World world, BlockPos blockPos) {
+        
+    }
 
-			for (int x = -scanRadius; x <= scanRadius; ++x) {
-				BlockPos scanLocation;
+    public static class SpiralIterable implements Iterable<BlockPos> {
 
-				for (int z = -scanRadius; z <= scanRadius; ++z) {
-					BlockPos blockpos1 = entityPosition.add(x, world.getActualHeight() - 1 - entityPosition.getY(), z);
-					while (blockpos1.getY() >= 0)
-					{
-						scanLocation = blockpos1.down();
+        private final BlockPos startPos;
+        private int stepSize;
 
-						// TF - use our portal block
-						if (world.getBlockState(blockpos1).getBlock() == BlockLibrary.portal) {
-							scanLocation = blockpos1.down();
-							while (world.getBlockState(scanLocation).getBlock() == BlockLibrary.portal)
-							{
-								blockpos1 = scanLocation;
-								scanLocation = scanLocation.down();
-							}
+        public SpiralIterable(BlockPos startPos, int stepSize) {
+            this.startPos = startPos;
+            this.stepSize = stepSize;
+        }
 
-							final double d1 = blockpos1.distanceSq(entityPosition);
+        @Override
+        public Iterator<BlockPos> iterator() {
+            return new SpiralIterator(startPos, stepSize);
+        }
+    }
 
-							if (distance < 0.0D || d1 < distance) {
-								distance = d1;
-								blockpos = blockpos1;
-							}
-						}
-						blockpos1 = scanLocation;
-					}
-				}
-			}
-		}
+    public static class SpiralIterator implements Iterator<BlockPos> {
 
-		if (distance >= 0.0D) {
-			if (flag) {
-				destinationCoordinateCache.put(l, new PortalPosition(blockpos, world.getTotalWorldTime()));
-			}
+        private int dx;
+        private int dz;
+        private int segment_length;
+        private int x;
+        private int z;
+        private int segment_passed;
+        private final BlockPos.MutableBlockPos returnedLocation;
+        private final int stepSize;
 
-			// TF - replace with our own placement logic
-			double portalX = blockpos.getX() + 0.5D;
-			final double portalY = blockpos.getY() + 0.5D;
-			double portalZ = blockpos.getZ() + 0.5D;
-			if (isBlockPortal(world, blockpos.west())) {
-				portalX -= 0.5D;
-			}
-			if (isBlockPortal(world, blockpos.east())) {
-				portalX += 0.5D;
-			}
-			if (isBlockPortal(world, blockpos.north())) {
-				portalZ -= 0.5D;
-			}
-			if (isBlockPortal(world, blockpos.south())) {
-				portalZ += 0.5D;
-			}
-			int xOffset = 0;
-			int zOffset = 0;
-			while (xOffset == zOffset && xOffset == 0) {
-				xOffset = random.nextInt(3) - random.nextInt(3);
-				zOffset = random.nextInt(3) - random.nextInt(3);
-			}
+        public SpiralIterator(BlockPos startingPoint, int stepSize) {
+            this.stepSize = stepSize;
+            // (dx, dz) is a vector - direction in which we move right now
+            dx = 1;
+            dz = 0;
+            // length of current segment
+            segment_length = 1;
 
-			entity.motionX = entity.motionY = entity.motionZ = 0.0D;
+            // current position (x, z) and how much of current segment we passed
+            x = startingPoint.getX();
+            z = startingPoint.getZ();
+            segment_passed = 0;
+            returnedLocation = new BlockPos.MutableBlockPos(startingPoint);
+        }
 
-			if (entity instanceof EntityPlayerMP) {
-				((EntityPlayerMP) entity).connection.setPlayerLocation(portalX + xOffset, portalY + 1, portalZ + zOffset, entity.rotationYaw, entity.rotationPitch);
-			} else {
-				entity.setLocationAndAngles(portalX + xOffset, portalY + 1, portalZ + zOffset, entity.rotationYaw, entity.rotationPitch);
-			}
+        @Override
+        public boolean hasNext() {
+            return true;
+        }
 
-			return true;
-		} else {
-			return false;
-		}
-	}
+        @Override
+        public BlockPos next() {
+            returnedLocation.setPos(x, returnedLocation.getY(), z);
 
-	private boolean isBlockPortal(World world, BlockPos pos) {
-		return world.getBlockState(pos).getBlock() == TFBlocks.portal;
-	}
+            // make a step, add 'direction' vector (dx, dz) to current position (x, z)
+            x += dx * stepSize;
+            z += dz * stepSize;
+            ++segment_passed;
 
-	@Override
-	public boolean makePortal(Entity entity) {
-		BlockPos spot = findPortalCoords(entity, true);
+            if (segment_passed == segment_length) {
+                // done with current segment
+                segment_passed = 0;
 
-		if (spot != null) {
-			Logger.trace("Found ideal portal spot");
-			makePortalAt(world, spot);
-			return true;
-		}
+                // 'rotate' directions
+                int buffer = dx;
+                dx = -dz;
+                dz = buffer;
 
-		Logger.trace("Did not find ideal portal spot, shooting for okay one");
-		spot = findPortalCoords(entity, false);
-		if (spot != null) {
-			Logger.trace("Found okay portal spot");
-			makePortalAt(world, spot);
-			return true;
-		}
-
-		// well I don't think we can actally just return false and fail here
-		Logger.trace("Did not even find an okay portal spot, just making a random one");
-
-		// adjust the portal height based on what world we're traveling to
-		final double yFactor = world.provider.getDimension() == 0 ? 2 : 0.5;
-		// modified copy of base Teleporter method:
-		makePortalAt(world, new BlockPos(entity.posX, entity.posY * yFactor, entity.posZ));
-
-		return false;
-	}
-
-	private BlockPos findPortalCoords(Entity entity, boolean ideal) {
-		// adjust the portal height based on what world we're traveling to
-		final double yFactor = world.provider.getDimension() == 0 ? 2 : 0.5;
-		// modified copy of base Teleporter method:
-		final int entityX = MathHelper.floor(entity.posX);
-		final int entityZ = MathHelper.floor(entity.posZ);
-
-		double spotWeight = -1.0D;
-
-		BlockPos spot = null;
-
-		final byte range = 16;
-		for (int rx = entityX - range; rx <= entityX + range; rx++) {
-			final double xWeight = (rx + 0.5D) - entity.posX;
-			for (int rz = entityZ - range; rz <= entityZ + range; rz++) {
-				final double zWeight = (rz + 0.5D) - entity.posZ;
-
-				for (int ry = 128 - 1; ry >= 0; ry--) {
-					BlockPos pos = new BlockPos(rx, ry, rz);
-
-					if (!world.isAirBlock(pos)) {
-						continue;
-					}
-
-					while (pos.getY() > 0 && world.isAirBlock(pos.down())) pos = pos.down();
-
-					if (ideal ? isIdealPortal(pos) : isOkayPortal(pos)) {
-						final double yWeight = (pos.getY() + 0.5D) - entity.posY * yFactor;
-						final double rPosWeight = xWeight * xWeight + yWeight * yWeight + zWeight * zWeight;
+                // increase segment length if necessary
+                if (dz == 0) {
+                    ++segment_length;
+                }
+            }
 
 
-						if (spotWeight < 0.0D || rPosWeight < spotWeight) {
-							spotWeight = rPosWeight;
-							spot = pos;
-						}
-					}
-				}
-			}
-		}
+            return returnedLocation;
 
-		return spot;
-	}
-
-	private void makePortalAt(World world, BlockPos pos) {
-		final TemplateAndProperties spawnTemplate = TemplateManager.getTemplateByName("portal_spawn");
-		final PlacementSettings placementIn = new PlacementSettings();
-		spawnTemplate.getTemplate().addBlocksToWorld(world, pos, placementIn);
-
-	}
+        }
+    }
 }
-

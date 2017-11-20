@@ -47,33 +47,6 @@
             </Style.Setters>
         </Style>
 
-        <Style x:Key="RoomButton" TargetType="ToggleButton">
-            <Style.Setters>
-                <Setter Property="BorderBrush" Value="Black" />
-                <Setter Property="BorderThickness" Value="4" />
-                <Setter Property="Width" Value="48" />
-                <Setter Property="Height" Value="48" />
-                <Setter Property="Margin" Value="0,0,4,4" />
-            </Style.Setters>
-        </Style>
-
-        <Style x:Key="SelectedRoomStyle" TargetType="ItemsControl" BasedOn="{StaticResource BaseRoomStyle}">
-            
-        </Style>
-        
-        <Style x:Key="TestRoomStyle" TargetType="ItemsControl" BasedOn="{StaticResource BaseRoomStyle}">
-            <Style.Setters>
-                <Setter Property="Opacity" Value="0.8" />
-                <Setter Property="ItemTemplate">
-                    <Setter.Value>
-                        <DataTemplate>
-                            <Border d:DataContext="{d:DesignInstance d:Type=model:Room}" Background="{Binding Present, Converter={StaticResource RoomSelectedConverter}, Mode=OneWay}" Style="{StaticResource Room}" />
-                        </DataTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style.Setters>
-        </Style>
-        
         <Style x:Key="NorthRoomConnectionStyle" TargetType="Line">
             <Style.Setters>
                 <Setter Property="Margin" Value="4, 0, -1, 0" />
@@ -120,6 +93,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -152,9 +126,35 @@
             </ListView>
             
         </StackPanel>
+
+        <StackPanel Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" Orientation="Vertical" Margin="16,8,16,16" Width="200">
+            <ListView ItemsSource="{Binding TestRoomProfiles}" SelectedItem="{Binding TestRoomSet, Mode=TwoWay}" SelectionMode="Single" IsItemClickEnabled="True" ItemClick="TestRoom_OnItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:TestRoomSet">
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <ItemsControl ItemsSource="{Binding RoomSet.Rooms, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapGrid Width="32" Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding Present,Converter={StaticResource RoomSelectedConverter}, Mode=OneWay}" Style="{StaticResource RoomPreview}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind RoomSet.Name, Mode=OneWay}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+        </StackPanel>
+
         <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="16">
             <TextBlock Text="Room Name:" VerticalAlignment="Center" Margin="0,0,4,0" />
-            <TextBox Text="{Binding CurrentRoomSet.Name, Mode=TwoWay}" Width="200" />
+            <TextBox Text="{Binding CurrentRoomSet.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="200" />
         </StackPanel>
         <Grid Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
@@ -215,10 +215,10 @@
             <controls:RoomEdit Grid.Column="1" Grid.Row="1" Rooms="{Binding CurrentRoomSet.Rooms, Mode=OneWay}" IsEditable="True" />
 
             <!-- Test Room ghosts -->
-            <controls:RoomEdit Grid.Column="1" Grid.Row="0" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding NorthRoomSetPatch, Mode=OneWay}" IsEditable="False" />
-            <controls:RoomEdit Grid.Column="0" Grid.Row="1" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding WestRoomSetPatch, Mode=OneWay}" IsEditable="False" />
-            <controls:RoomEdit Grid.Column="2" Grid.Row="1" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding EastRoomSetPatch, Mode=OneWay}" IsEditable="False" />
-            <controls:RoomEdit Grid.Column="1" Grid.Row="2" Rooms="{Binding TestRoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding SouthRoomSetPatch, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="1" Grid.Row="0" Rooms="{Binding TestRoomSet.RoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding NorthRoomSetPatch.Rooms, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="0" Grid.Row="1" Rooms="{Binding TestRoomSet.RoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding WestRoomSetPatch.Rooms, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="2" Grid.Row="1" Rooms="{Binding TestRoomSet.RoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding EastRoomSetPatch.Rooms, Mode=OneWay}" IsEditable="False" />
+            <controls:RoomEdit Grid.Column="1" Grid.Row="2" Rooms="{Binding TestRoomSet.RoomSet.Rooms, Mode=OneWay}" RoomPatches="{Binding SouthRoomSetPatch.Rooms, Mode=OneWay}" IsEditable="False" />
         </Grid>
     </Grid>
 </Page>

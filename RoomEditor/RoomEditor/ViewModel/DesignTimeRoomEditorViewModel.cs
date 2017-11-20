@@ -42,7 +42,7 @@ namespace RoomEditor.ViewModel
             });
 
             this.CurrentRoomSet = RoomProfiles.First();
-            this.TestRoomSet = RoomProfiles.Last();
+            this.TestRoomSet = TestRoomProfiles.Last();
         }
     }
 }
