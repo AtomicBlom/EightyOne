@@ -5,4 +5,5 @@ public class StructureProperties
 	public transient int height;
 
 	public int yOffset = 0;
+	public boolean spawnable = true;
 }

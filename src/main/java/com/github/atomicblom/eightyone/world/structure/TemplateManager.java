@@ -43,6 +43,7 @@ public class TemplateManager
 
 	private static Map<String, StructureProperties> validStructures = Maps.newHashMap();
 	private static List<String> validStructureNames = Lists.newArrayList();
+	private static List<String> spawnableStructureNames = Lists.newArrayList();
 
 	public static void getValidTemplates() {
 		final Map<String, StructureProperties> validStructures = Maps.newHashMap();
@@ -59,6 +60,10 @@ public class TemplateManager
 			if (canUseStructure(key, value)) {
 				validStructures.put(key, value);
 				validStructureNames.add(key);
+				if (value.spawnable)
+				{
+					spawnableStructureNames.add(key);
+				}
 			}
 		}
 
@@ -99,7 +104,7 @@ public class TemplateManager
 
 	public static TemplateAndProperties getTemplateByChance(double templateChance)
 	{
-		final List<String> vsn = validStructureNames;
+		final List<String> vsn = spawnableStructureNames;
 		final double v = vsn.size() * templateChance;
 		final String selectedStructure = vsn.get((int) v);
 

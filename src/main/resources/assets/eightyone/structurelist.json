@@ -4,6 +4,12 @@
     },
     "gravelfloor": {
       "yOffset": -1
+    },
+    "portal": {
+      "spawnable": false
+    },
+    "portal_overworld": {
+      "spawnable": false
     }
   }
 }

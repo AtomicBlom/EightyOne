@@ -11,6 +11,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -37,14 +38,14 @@ public class Portal extends Block
 	}
 
 	int[][] cornerOffsets = {
-			{-5, 0, -5},
-			{5, 0, -5},
-			{-5, 0, 5},
-			{5, 0, 5},
-			{-5, 5, -5},
-			{5, 5, -5},
-			{-5, 5, 5},
-			{5, 5, 5}
+			{-4, 0, -4},
+			{4, 0, -4},
+			{-4, 0, 4},
+			{4, 0, 4},
+			{-4, 5, -4},
+			{4, 5, -4},
+			{-4, 5, 4},
+			{4, 5, 4}
 	};
 
 	@Override
@@ -52,15 +53,15 @@ public class Portal extends Block
 	{
 		if (CheckValidStructure(worldIn, pos)) return;
 
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 5, pos.getY(), pos.getZ() - 5, 0, 0.02, 0);
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 5, pos.getY(), pos.getZ() - 5, 0, 0.02, 0);
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 5, pos.getY(), pos.getZ() + 5, 0, 0.02, 0);
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 5, pos.getY(), pos.getZ() + 5, 0, 0.02, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
 
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 5, pos.getY() + 5, pos.getZ() - 5, 0, 0.02, 0);
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 5, pos.getY() + 5, pos.getZ() - 5, 0, 0.02, 0);
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 5, pos.getY() + 5, pos.getZ() + 5, 0, 0.02, 0);
-		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 5, pos.getY() + 5, pos.getZ() + 5, 0, 0.02, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
+		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
 	}
 
 	@Override
@@ -144,8 +145,8 @@ public class Portal extends Block
 				d0 = MathHelper.clamp(d0, worldserver1.getWorldBorder().minX() + 16.0D, worldserver1.getWorldBorder().maxX() - 16.0D);
 				d1 = MathHelper.clamp(d1, worldserver1.getWorldBorder().minZ() + 16.0D, worldserver1.getWorldBorder().maxZ() - 16.0D);
 
-				d0 = (double) MathHelper.clamp((int) d0, -29999872, 29999872);
-				d1 = (double) MathHelper.clamp((int) d1, -29999872, 29999872);
+				d0 = MathHelper.clamp((int) d0, -29999872, 29999872);
+				d1 = MathHelper.clamp((int) d1, -29999872, 29999872);
 				float f = toTeleport.rotationYaw;
 				toTeleport.setLocationAndAngles(d0, toTeleport.posY, d1, 90.0F, 0.0F);
 				Teleporter teleporter = EightyOneTeleporter.getTeleporterForDim(minecraftserver, dimensionIn); // TF - custom teleporter
@@ -165,7 +166,7 @@ public class Portal extends Block
 					entity.moveToBlockPosAndAngles(blockpos1, entity.rotationYaw, entity.rotationPitch);
 				} else {
 					// TF - inline moveToBlockPosAndAngles without +0.5 offsets, since teleporter already took care of it
-					entity.setLocationAndAngles((double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ(), entity.rotationYaw, entity.rotationPitch);
+					entity.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), entity.rotationYaw, entity.rotationPitch);
 				}
 
 				boolean flag = entity.forceSpawn;
@@ -185,16 +186,22 @@ public class Portal extends Block
 
 	private boolean CheckValidStructure(World worldIn, BlockPos pos)
 	{
+		Block checkBlock;
+		pos = pos.down();
+		checkBlock = worldIn.getBlockState(pos).getBlock();
+		if (checkBlock == Blocks.AIR) { return false; }
+
+		pos = pos.down();
+
 		Block cornerBlock = null;
 		Block topRowBlock = null;
 		Block bottomRowBlock = null;
 		Block columnBlock = null;
 
-		Block checkBlock;
-
 		for (final int[] offset : cornerOffsets)
 		{
 			checkBlock = worldIn.getBlockState(pos.add(offset[0], offset[1], offset[2])).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (cornerBlock == null) {
 				cornerBlock = checkBlock;
 			} else if (checkBlock != cornerBlock) {
@@ -202,64 +209,82 @@ public class Portal extends Block
 			}
 		}
 
-		for (int i = -4; i < 4; ++i) {
-			checkBlock = worldIn.getBlockState(pos.add(-5, i, -5)).getBlock();
-			if (columnBlock == null) {
+		for (int i = 1; i <= 4; ++i) {
+			checkBlock = worldIn.getBlockState(pos.add(-4, i, -4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
+			if (columnBlock == null)
+			{
 				columnBlock = checkBlock;
-			} else if (checkBlock != columnBlock) {
+			} else if (checkBlock != columnBlock)
+			{
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(5, i, -5)).getBlock();
-			if (checkBlock != columnBlock) {
+			checkBlock = worldIn.getBlockState(pos.add(4, i, -4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
+			if (checkBlock != columnBlock)
+			{
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(5, i, 5)).getBlock();
-			if (checkBlock != columnBlock) {
+			checkBlock = worldIn.getBlockState(pos.add(4, i, 4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
+			if (checkBlock != columnBlock)
+			{
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(-5, i, 5)).getBlock();
-			if (checkBlock != columnBlock) {
+			checkBlock = worldIn.getBlockState(pos.add(-4, i, 4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
+			if (checkBlock != columnBlock)
+			{
 				return false;
 			}
+		}
 
-			checkBlock = worldIn.getBlockState(pos.add(i, 0, -5)).getBlock();
+		for (int i = -3; i <= 3; ++i) {
+			checkBlock = worldIn.getBlockState(pos.add(i, 0, -4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (bottomRowBlock == null) {
 				bottomRowBlock = checkBlock;
 			} else if (checkBlock != bottomRowBlock) {
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(i, 0, 5)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(i, 0, 4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (checkBlock != bottomRowBlock) {
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(5, 0, i)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(4, 0, i)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (checkBlock != bottomRowBlock) {
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(-5, 0, i)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(-4, 0, i)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (checkBlock != bottomRowBlock) {
 				return false;
 			}
 
-			checkBlock = worldIn.getBlockState(pos.add(i, 5, -5)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(i, 5, -4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (topRowBlock == null) {
 				topRowBlock = checkBlock;
 			} else if (checkBlock != topRowBlock) {
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(i, 5, 5)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(i, 5, 4)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (checkBlock != topRowBlock) {
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(5, 5, i)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(4, 5, i)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (checkBlock != topRowBlock) {
 				return false;
 			}
-			checkBlock = worldIn.getBlockState(pos.add(-5, 5, i)).getBlock();
+			checkBlock = worldIn.getBlockState(pos.add(-4, 5, i)).getBlock();
+			if (checkBlock == Blocks.AIR) { return false; }
 			if (checkBlock != topRowBlock) {
 				return false;
 			}
-
 		}
 
 		return true;
