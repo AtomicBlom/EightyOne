@@ -105,7 +105,7 @@ public class TemplateManager
 	public static TemplateAndProperties getTemplateByChance(double templateChance)
 	{
 		final List<String> vsn = spawnableStructureNames;
-		final double v = vsn.size() * templateChance;
+		final double v = vsn.size() * Math.abs(templateChance);
 		final String selectedStructure = vsn.get((int) v);
 
 		try

@@ -53,6 +53,8 @@ public class Portal extends Block
 	{
 		if (CheckValidStructure(worldIn, pos)) return;
 
+		pos = pos.down(2);
+
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
