@@ -33,7 +33,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public class ChunkGeneratorEightyOne implements IChunkGenerator
+public class NxNChunkGenerator implements IChunkGenerator
 {
 	private static final int ROOM_SET_SIZE = 5;
 	private static final int BASE_HEIGHT = 8;
@@ -45,7 +45,7 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 	private int roomId = 0;
 	private final LoadingCache<Point2D, Room> roomCache;
 
-	public ChunkGeneratorEightyOne(World world, long seed, boolean mapFeaturesEnabled)
+	public NxNChunkGenerator(World world, long seed, boolean mapFeaturesEnabled)
 	{
 		this.world = world;
 		this.seed = seed;
@@ -74,7 +74,7 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 		return chunk;
 	}
 
-	private Room getRoomAt(int x, int z) {
+	public Room getRoomAt(int x, int z) {
 		int roomX = x / 10 * 10;
 		if (x < 0 && x % 10 != 0) roomX -= 10;
 		int roomZ = z / 10 * 10;
@@ -306,6 +306,10 @@ public class ChunkGeneratorEightyOne implements IChunkGenerator
 	public boolean isInsideStructure(World worldIn, String structureName, BlockPos pos)
 	{
 		return false;
+	}
+
+	public int getFloorHeight() {
+		return BASE_HEIGHT;
 	}
 
 	private class Point2DRoomCacheLoader extends CacheLoader<Point2D, Room>

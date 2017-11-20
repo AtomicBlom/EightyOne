@@ -4,7 +4,7 @@ import net.minecraft.world.DimensionType;
 import net.minecraft.world.biome.BiomeProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 
-public class WorldProvider extends net.minecraft.world.WorldProvider
+public class NxNWorldProvider extends net.minecraft.world.WorldProvider
 {
 
 	@Override
@@ -16,13 +16,13 @@ public class WorldProvider extends net.minecraft.world.WorldProvider
 	@Override
 	public IChunkGenerator createChunkGenerator()
 	{
-		return new ChunkGeneratorEightyOne(world, world.getSeed(), world.getWorldInfo().isMapFeaturesEnabled());
+		return new NxNChunkGenerator(world, world.getSeed(), world.getWorldInfo().isMapFeaturesEnabled());
 	}
 
 	private static DimensionType _dimensionType;
 
 	public static DimensionType initDimensionType() {
-		_dimensionType = DimensionType.register("EightyOne", "_eightyone", 81, WorldProvider.class, false);
+		_dimensionType = DimensionType.register("EightyOne", "_eightyone", 81, NxNWorldProvider.class, false);
 		return _dimensionType;
 	}
 
