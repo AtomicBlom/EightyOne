@@ -316,4 +316,22 @@ public class Portal extends Block implements ITileEntityProvider
 	{
 		return (layer == BlockRenderLayer.SOLID);
 	}
+
+	@Override
+	public boolean isOpaqueCube(IBlockState state)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isFullCube(IBlockState state)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isFullBlock(IBlockState state)
+	{
+		return false;
+	}
 }

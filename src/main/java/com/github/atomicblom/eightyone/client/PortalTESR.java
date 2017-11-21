@@ -25,7 +25,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		GlStateManager.translate(x, y, z);
 
 
-		GlStateManager.translate(0.5, 0.7, 0.5);
+		GlStateManager.translate(0.5, 0.5, 0.5);
 
 		GlStateManager.rotate(90, 0, 0, 1);
 		GlStateManager.rotate(yRotation, 0, 1, 0);
@@ -51,9 +51,9 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		for (float cx = 0; cx < 3; ++cx) {
 			for (float cy = 0; cy < 3; ++cy) {
 				for (float cz = 0; cz < 3; ++cz) {
-					float cubeX = cx / 3.0f + offset;
-					float cubeY = cy / 3.0f + offset;
-					float cubeZ = cz / 3.0f + offset;
+					float cubeX = 1 / 3.0f + offset;
+					float cubeY = 1 / 3.0f + offset;
+					float cubeZ = 1 / 3.0f + offset;
 
 					bufferbuilder.pos(cubeX, cubeY, cubeZ + cubeSize).color(r, g, b, a).endVertex();
 					bufferbuilder.pos(cubeX + cubeSize, cubeY, cubeZ + cubeSize).color(r, g, b, a).endVertex();
