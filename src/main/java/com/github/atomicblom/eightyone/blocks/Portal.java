@@ -4,6 +4,7 @@ import com.github.atomicblom.eightyone.EightyOneTeleporter;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
 import net.minecraft.block.Block;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -13,17 +14,18 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Teleporter;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeHooks;
+import javax.annotation.Nullable;
 import java.util.Random;
 
-public class Portal extends Block
+public class Portal extends Block implements ITileEntityProvider
 {
 	public Portal()
 	{
@@ -84,17 +86,15 @@ public class Portal extends Block
 
 					// send to twilight
 					if (playerMP.dimension != Reference.DIMENSION_ID) {
-						if (!net.minecraftforge.common.ForgeHooks.onTravelToDimension(playerMP, Reference.DIMENSION_ID)) return false;
+						if (!ForgeHooks.onTravelToDimension(playerMP, Reference.DIMENSION_ID)) return false;
 
-						//PlayerHelper.grantAdvancement(playerMP, new ResourceLocation(TwilightForestMod.ID, "twilight_portal"));
 						Logger.info("Player touched the portal block.  Sending the player to dimension {}", Reference.DIMENSION_ID);
 
 						playerMP.mcServer.getPlayerList().transferPlayerToDimension(playerMP, Reference.DIMENSION_ID, EightyOneTeleporter.getTeleporterForDim(playerMP.mcServer, Reference.DIMENSION_ID));
 
-						// set respawn point for TF dimension to near the arrival portal
 						playerMP.setSpawnChunk(new BlockPos(playerMP), true, Reference.DIMENSION_ID);
 					} else {
-						if (!net.minecraftforge.common.ForgeHooks.onTravelToDimension(playerMP, 0)) return false;
+						if (!ForgeHooks.onTravelToDimension(playerMP, 0)) return false;
 
 						playerMP.mcServer.getPlayerList().transferPlayerToDimension(playerMP, 0, EightyOneTeleporter.getTeleporterForDim(playerMP.mcServer, 0));
 					}
@@ -118,7 +118,7 @@ public class Portal extends Block
 	@SuppressWarnings("unused")
 	private void changeDimension(Entity toTeleport, int dimensionIn) {
 		if (!toTeleport.world.isRemote && !toTeleport.isDead) {
-			if (!net.minecraftforge.common.ForgeHooks.onTravelToDimension(toTeleport, dimensionIn)) return;
+			if (!ForgeHooks.onTravelToDimension(toTeleport, dimensionIn)) return;
 			toTeleport.world.profiler.startSection("changeDimension");
 			MinecraftServer minecraftserver = toTeleport.getServer();
 			int i = toTeleport.dimension;
@@ -290,5 +290,30 @@ public class Portal extends Block
 		}
 
 		return true;
+	}
+
+	@Override
+	public boolean hasTileEntity(IBlockState state)
+	{
+		return true;
+	}
+
+	@Nullable
+	@Override
+	public TileEntity createNewTileEntity(World worldIn, int meta)
+	{
+		return new PortalTileEntity();
+	}
+
+	@Override
+	public EnumBlockRenderType getRenderType(IBlockState state)
+	{
+		return EnumBlockRenderType.ENTITYBLOCK_ANIMATED;
+	}
+
+	@Override
+	public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer)
+	{
+		return (layer == BlockRenderLayer.SOLID);
 	}
 }
