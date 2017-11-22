@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TemplateManager
 {
-	private static final LoadingCache<String, TemplateAndProperties> TemplateCache;
+	private static final LoadingCache<String, NxNTemplate> TemplateCache;
 
 	static {
 		TemplateCache = CacheBuilder.newBuilder()
@@ -91,7 +91,7 @@ public class TemplateManager
 		}
 	}
 
-	public static TemplateAndProperties getTemplateByName(String filename) {
+	public static NxNTemplate getTemplateByName(String filename) {
 		try
 		{
 			return TemplateCache.get(filename);
@@ -102,7 +102,7 @@ public class TemplateManager
 		}
 	}
 
-	public static TemplateAndProperties getTemplateByChance(double templateChance)
+	public static NxNTemplate getTemplateByChance(double templateChance)
 	{
 		final List<String> vsn = spawnableStructureNames;
 		final double v = vsn.size() * Math.abs(templateChance);
@@ -152,9 +152,9 @@ public class TemplateManager
 		}
 	}
 
-	private static class TemplateLoader extends CacheLoader<String, TemplateAndProperties> {
+	private static class TemplateLoader extends CacheLoader<String, NxNTemplate> {
 		@Override
-		public TemplateAndProperties load(String key) throws Exception
+		public NxNTemplate load(String key) throws Exception
 		{
 			try
 			{
@@ -168,9 +168,9 @@ public class TemplateManager
 					nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
 				}
 
-				final Template template = new Template();
+				final NxNTemplate template = new NxNTemplate(validStructures.get(key));
 				template.read(dataFixer.process(FixTypes.STRUCTURE, nbttagcompound));
-				return new TemplateAndProperties(template, validStructures.get(key));
+				return template;
 
 			} catch (IOException exception) {
 

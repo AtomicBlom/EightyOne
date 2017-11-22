@@ -10,6 +10,24 @@
     },
     "portal_overworld": {
       "spawnable": false
+    },
+    "bunker1": {},
+    "enchantingroom1": {},
+    "graveltrap1": {
+      "yOffset": -1
+    },
+    "graveltrap2": {
+      "yOffset": -1
+    },
+    "netherroom1": {},
+    "netherroom2": {
+      "yOffset": -1
+    },
+    "oaktreeroom1": {
+      "yOffset": -1
+    },
+    "sprucetreeroom1": {
+      "yOffset": -1
     }
   }
 }

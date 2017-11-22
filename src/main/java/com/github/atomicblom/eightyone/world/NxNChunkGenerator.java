@@ -2,7 +2,7 @@ package com.github.atomicblom.eightyone.world;
 
 import com.github.atomicblom.eightyone.util.Point2D;
 import com.github.atomicblom.eightyone.world.structure.StructureProperties;
-import com.github.atomicblom.eightyone.world.structure.TemplateAndProperties;
+import com.github.atomicblom.eightyone.world.structure.NxNTemplate;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -86,7 +86,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 
 	private void generateChunk(int chunkX, int chunkZ, ChunkPrimer primer)
 	{
-		final boolean renderRoof = false;
+		final boolean renderRoof = true;
 		final int height = 6;
 		final int posX = chunkX << 4;
 		final int posZ = chunkZ << 4;
@@ -97,6 +97,15 @@ public class NxNChunkGenerator implements IChunkGenerator
 			{
 				final Room room = getRoomAt(posX + x, posZ + z);
 				if (!room.hasProperty(RoomProperties.IsPresent)) continue;
+
+				final NxNTemplate template;
+				if (room.hasSpecificTemplate()) {
+					template = TemplateManager.getTemplateByName(room.getTemplate());
+				} else {
+					template = TemplateManager.getTemplateByChance(room.getTemplateChance());
+				}
+				if (template != null && template.isCustomRoom()) continue;
+
 				if (room.contains(posX + x, posZ + z))
 				{
 					primer.setBlockState(x, BASE_HEIGHT, z, Blocks.COBBLESTONE.getDefaultState());
@@ -104,21 +113,22 @@ public class NxNChunkGenerator implements IChunkGenerator
 					final int xOffset = room.getXOffset(posX + x);
 					final int zOffset = room.getZOffset(posZ + z);
 
+					final int roomHeight = BASE_HEIGHT + template.getHeight() + 1;
 					if (renderRoof)
 					{
 						if ((xOffset == 2 || xOffset == 3 || xOffset == 5 || xOffset == 6) &&
 								(zOffset == 2 || zOffset == 3 || zOffset == 5 || zOffset == 6))
 						{
-							primer.setBlockState(x, BASE_HEIGHT + height, z, Blocks.GLASS.getDefaultState());
+							primer.setBlockState(x, roomHeight, z, Blocks.GLASS.getDefaultState());
 						} else
 						{
-							primer.setBlockState(x, BASE_HEIGHT + height, z, Blocks.COBBLESTONE.getDefaultState());
+							primer.setBlockState(x, roomHeight, z, Blocks.COBBLESTONE.getDefaultState());
 						}
 					}
 
 					if (room.isWall(posX + x, posZ + z))
 					{
-						for (int y = BASE_HEIGHT; y < BASE_HEIGHT + height; ++y)
+						for (int y = BASE_HEIGHT; y < roomHeight; ++y)
 						{
 							primer.setBlockState(x, y, z, Blocks.COBBLESTONE.getDefaultState());
 						}
@@ -135,7 +145,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 		final PlacementSettings placementSettings = new PlacementSettings();
 		placementSettings.setChunk(new ChunkPos(chunkX, chunkZ));
 
-		BlockFalling.fallInstantly = true;
+		BlockFalling.fallInstantly = false;
 
 		final int chunkCornerX  = chunkX << 4;
 		final int chunkCornerZ  = chunkZ << 4;
@@ -235,20 +245,18 @@ public class NxNChunkGenerator implements IChunkGenerator
 					}
 				}
 
-				TemplateAndProperties templateWithProperties;
+				final NxNTemplate template;
 				if (room.hasSpecificTemplate()) {
-					templateWithProperties = TemplateManager.getTemplateByName(room.getTemplate());
+					template = TemplateManager.getTemplateByName(room.getTemplate());
 				} else {
-					templateWithProperties = TemplateManager.getTemplateByChance(room.getTemplateChance());
+					template = TemplateManager.getTemplateByChance(room.getTemplateChance());
 				}
 
-				final Template template = templateWithProperties.getTemplate();
-				final StructureProperties properties = templateWithProperties.getStructureProperties();
 				if (template != null)
 				{
 					template.addBlocksToWorldChunk(
 							world,
-							new BlockPos(room.getX() + 1, BASE_HEIGHT + 1 + properties.yOffset, room.getZ() + 1),
+							new BlockPos(room.getX(), BASE_HEIGHT, room.getZ()),
 							placementSettings);
 				}
 			}

@@ -1,6 +1,7 @@
 package com.github.atomicblom.eightyone;
 
 import com.github.atomicblom.eightyone.blocks.Portal;
+import com.github.atomicblom.eightyone.blocks.PortalTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -8,6 +9,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 
 @Mod.EventBusSubscriber
@@ -21,6 +23,8 @@ public class RegistrationEvents
 				.setRegistryName(registryName)
 				.setUnlocalizedName(registryName.toString())
 		);
+
+		GameRegistry.registerTileEntity(PortalTileEntity.class, "portal");
 	}
 
 	@SubscribeEvent

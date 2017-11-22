@@ -4,7 +4,7 @@ import com.github.atomicblom.eightyone.world.NxNChunkGenerator;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
 import com.github.atomicblom.eightyone.world.Room;
 import com.github.atomicblom.eightyone.world.RoomProperties;
-import com.github.atomicblom.eightyone.world.structure.TemplateAndProperties;
+import com.github.atomicblom.eightyone.world.structure.NxNTemplate;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -66,9 +66,9 @@ public class EightyOneTeleporter extends Teleporter {
     }
 
     private void makePortal(World world, BlockPos blockPos, boolean fillUnderneath) {
-        final TemplateAndProperties spawn = TemplateManager.getTemplateByName("spawn");
+        final NxNTemplate spawn = TemplateManager.getTemplateByName("spawn");
         final PlacementSettings placementSettings = new PlacementSettings();
-        final Template template = spawn.getTemplate();
+        final Template template = spawn;
         template.addBlocksToWorld(world, blockPos, placementSettings);
 
         if (fillUnderneath)
