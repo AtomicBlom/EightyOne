@@ -66,7 +66,7 @@ public class EightyOneTeleporter extends Teleporter {
     }
 
     private void makePortal(World world, BlockPos blockPos, boolean fillUnderneath) {
-        final NxNTemplate spawn = TemplateManager.getTemplateByName("spawn");
+        final NxNTemplate spawn = TemplateManager.getTemplateByName("portal");
         final PlacementSettings placementSettings = new PlacementSettings();
         final Template template = spawn;
         template.addBlocksToWorld(world, blockPos, placementSettings);
@@ -81,7 +81,7 @@ public class EightyOneTeleporter extends Teleporter {
                 while (fillPos.getY() >= 0 && world.getBlockState(fillPos).getBlock() == Blocks.AIR)
                 {
                     world.setBlockState(fillPos, blockStateToUse);
-                    fillPos.offset(EnumFacing.DOWN);
+                    fillPos.setY(fillPos.getY() - 1);
                 }
             }
         }
