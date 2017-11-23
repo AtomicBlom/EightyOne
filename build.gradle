@@ -97,8 +97,4 @@ sourceSets {
     }
 }
 
-task apiJar(type: Jar) {
-    from sourceSets.api.output
-    classifier = 'api'
-}
 tasks.build.dependsOn apiJar
