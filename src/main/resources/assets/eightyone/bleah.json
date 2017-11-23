@@ -1,0 +1,27 @@
+{
+  "structureList": {
+    "minimaze": {
+    },
+    "gravelfloor": {
+      "yOffset": -1
+    },
+    "portal": {
+      "spawnable": false
+    },
+    "portal_overworld": {
+      "spawnable": false
+    },
+    "bunker1": {},
+    "enchantingroom1": {},
+    "graveltrap1": {
+      "yOffset": -1
+    },
+    "graveltrap2": {
+      "yOffset": -1
+    },
+    "netherroom1": {},
+    "netherroom2": {},
+    "oaktreeroom1": {},
+    "sprucetreeroom1": {}
+  }
+}

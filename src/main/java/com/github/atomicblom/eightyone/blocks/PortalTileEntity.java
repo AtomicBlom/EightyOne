@@ -5,6 +5,8 @@ import net.minecraft.tileentity.TileEntity;
 public class PortalTileEntity extends TileEntity
 {
 	private float yRotation;
+	private long pulse;
+	private float pulseRotation;
 
 	@Override
 	public boolean hasFastRenderer()
@@ -22,4 +24,23 @@ public class PortalTileEntity extends TileEntity
 	}
 
 
+	public void setPulse(long pulse)
+	{
+		this.pulse = pulse;
+	}
+
+	public long getPulse()
+	{
+		return pulse;
+	}
+
+	public void setPulseRotation(float pulseRotation)
+	{
+		this.pulseRotation = pulseRotation;
+	}
+
+	public float getPulseRotation()
+	{
+		return pulseRotation;
+	}
 }

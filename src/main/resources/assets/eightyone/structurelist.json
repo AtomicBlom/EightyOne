@@ -28,6 +28,45 @@
     },
     "sprucetreeroom1": {
       "yOffset": -1
+    },
+    "faketraproom1": {
+      "yOffset": -1
+    },
+    "basicmaze1": {
+      "yOffset": -1
+    },
+    "cropsroom1": {
+      "yOffset": -1
+    },
+    "cropsroom2": {
+      "yOffset": -1
+    },
+    "livestockroom1": {
+      "yOffset": -1
+    },
+    "livestockroom2": {
+      "yOffset": -1
+    },
+    "livestockroom3": {
+      "yOffset": -1
+    },
+    "livestockroom4": {
+      "yOffset": -1
+    },
+    "livestockroom5": {
+      "yOffset": -1
+    },
+    "starter1": {
+      "yOffset": -1
+    },
+    "traproom1": {
+      "yOffset": -1
+    },
+    "traproom2": {
+      "yOffset": -1
+    },
+    "traproom3": {
+      "yOffset": -1
     }
   }
 }
