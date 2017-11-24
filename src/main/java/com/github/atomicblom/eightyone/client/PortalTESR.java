@@ -2,7 +2,6 @@ package com.github.atomicblom.eightyone.client;
 
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.PortalTileEntity;
-import com.sun.javafx.geom.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -91,10 +90,6 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 			GlStateManager.disableAlpha();
 		}
 		GlStateManager.popMatrix();
-
-		//GlStateManager.enableLighting();
-		//GlStateManager.enableTexture2D();
-		//GlStateManager.depthMask(true);
 	}
 
 	private void renderRotatingPortal(PortalTileEntity te, TextureAtlasSprite sprite, float yRotation, float scale, float alpha)
@@ -102,9 +97,8 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(0.5, 0.5, 0.5);
 
-		//GlStateManager.rotate(90, 0, 0, 1);
-		//GlStateManager.rotate(yRotation, 0, 1, 0);
-		//GlStateManager.rotate(yRotation / 2, 1, 0, 0);
+		GlStateManager.rotate(yRotation, 0, 1, 0);
+		GlStateManager.rotate(yRotation / 2, 1, 0, 0);
 
 		GlStateManager.scale(scale, scale, scale);
 
@@ -118,31 +112,25 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		float b = (alpha / 4) + 0.75f;
 		float a = alpha;
 
-		float cubeSize = 0.25f;
+		float cubeSize = 1f;
 
-		final float v = (1 - (cubeSize * 3)) / 3;
-		float offset = v;
-		//offset = 0.125f;
-
-		int rotation = 0;
+		float offset = -0.5f;
+		float spacing = (4 - (cubeSize * 3)) / 2;
 
 		for (float cx = 0; cx < 3; ++cx)
 		{
-			//if (cx != 0) continue;
 			for (float cy = 0; cy < 3; ++cy)
 			{
-				//if (cy != 0) continue;
-
 				for (float cz = 0; cz < 3; ++cz)
 				{
 
-					float minXa = cx / 3.0f + cx * offset;
-					float minYa = cy / 3.0f + cy * offset;
-					float minZa = cz / 3.0f + cz * offset;
+					float minXa = (cx - 1) + (cx * spacing) + offset;// / 3.0f + cx * offset;
+					float minYa = (cy - 1) + (cy * spacing) + offset;// / 3.0f + cy * offset;
+					float minZa = (cz - 1) + (cz * spacing) + offset;// / 3.0f + cz * offset;
 
-					float minX = 0 / 3.0f - 0.5f;
-					float minY = 0 / 3.0f - 0.5f;
-					float minZ = 0 / 3.0f - 0.5f;
+					float minX = -0.5f;
+					float minY = -0.5f;
+					float minZ = -0.5f;
 
 					final float maxZ = minZ + 1;
 					final float maxY = minY + 1;
@@ -161,9 +149,12 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 
 					Matrix4f transform = Matrix4f.setIdentity(new Matrix4f());
 
+					transform = transform.scale(new Vector3f(0.25f, 0.25f, 0.25f));
 					transform = transform.translate(new Vector3f(minXa, minYa, minZa));
-					//transform = transform.scale(new Vector3f(0.25f, 0.25f, 0.25f));
-					transform = transform.rotate((float)(rotation * (Math.PI / 2)), new Vector3f(1.0f, 0.0f, 0.0f));
+
+					transform = transform.rotate((float)(cx * (Math.PI / 2)), new Vector3f(1.0f, 0.0f, 0.0f));
+					transform = transform.rotate((float)(cy * (Math.PI / 2)), new Vector3f(0.0f, 1.0f, 0.0f));
+					transform = transform.rotate((float)((cz + 1) * (Math.PI / 2)), new Vector3f(0.0f, 0.0f, 1.0f));
 
 
 					makeVertex(transform, bufferbuilder, sprite, minX, minY, maxZ, uB, vB, r, g, b, a, 0, 0, -1);
@@ -195,8 +186,6 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, maxZ, uC, vC, r, g, b, a, 0, 1, 0);
 					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, minZ, uC, vD, r, g, b, a, 0, 1, 0);
 					makeVertex(transform, bufferbuilder, sprite, minX, maxY, minZ, uB, vD, r, g, b, a, 0, 1, 0);
-
-					rotation++;
 				}
 			}
 		}
@@ -204,18 +193,19 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		GlStateManager.popMatrix();
 	}
 
-	Vector4f vec3f = new Vector4f();
-	Vector4f dest = new Vector4f();
+	Vector4f untransformed = new Vector4f(0, 0, 0, 1);
+	Vector4f pos = new Vector4f();
+	Vector4f normal = new Vector4f();
 
 	private void makeVertex(Matrix4f transform, BufferBuilder bufferbuilder, TextureAtlasSprite sprite, float x, float y, float z, float u, float v, float r, float g, float b, float a, int normalX, int normalY, int normalZ)
 	{
+		untransformed.set(x, y, z);
+		Matrix4f.transform(transform, untransformed, pos);
 
-		vec3f.set(x, y, z, 1);
+		untransformed.set(normalX, normalY, normalZ);
+		Matrix4f.transform(transform, untransformed, normal);
 
-		Matrix4f.transform(transform, vec3f, dest);
-
-
-		bufferbuilder.pos(dest.x, dest.y, dest.z).tex(sprite.getInterpolatedU(u), sprite.getInterpolatedV(v)).color(r, g, b, a).normal(normalX, normalY, normalZ).endVertex();
+		bufferbuilder.pos(pos.x, pos.y, pos.z).tex(sprite.getInterpolatedU(u), sprite.getInterpolatedV(v)).color(r, g, b, a).normal(normal.x, normal.y, normal.z).endVertex();
 
 	}
 }
