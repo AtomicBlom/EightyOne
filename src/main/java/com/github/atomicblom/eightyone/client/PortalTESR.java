@@ -2,6 +2,7 @@ package com.github.atomicblom.eightyone.client;
 
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.PortalTileEntity;
+import com.sun.javafx.geom.Vec3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -12,6 +13,9 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
 
 public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 {
@@ -63,6 +67,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		//Translucent Render Pass A
 		scale = 1 + currentPulseTime / 3000.0f;
 		float alpha = 1 - (currentPulseTime / 1000.0f);
+
 		if (alpha > 0)
 		{
 			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -98,8 +103,8 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		GlStateManager.translate(0.5, 0.5, 0.5);
 
 		//GlStateManager.rotate(90, 0, 0, 1);
-		GlStateManager.rotate(yRotation, 0, 1, 0);
-		GlStateManager.rotate(yRotation / 2, 1, 0, 0);
+		//GlStateManager.rotate(yRotation, 0, 1, 0);
+		//GlStateManager.rotate(yRotation / 2, 1, 0, 0);
 
 		GlStateManager.scale(scale, scale, scale);
 
@@ -108,29 +113,40 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 
 		bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
 
-		float r = 1;
+		float r = (alpha / 4) + 0.75f;
 		float g = 1;
-		float b = 1;
+		float b = (alpha / 4) + 0.75f;
 		float a = alpha;
 
 		float cubeSize = 0.25f;
 
-		final float v = (1 - (cubeSize * 3)) / 6;
-		float offset = -0.5f + v;
+		final float v = (1 - (cubeSize * 3)) / 3;
+		float offset = v;
+		//offset = 0.125f;
+
+		int rotation = 0;
 
 		for (float cx = 0; cx < 3; ++cx)
 		{
+			//if (cx != 0) continue;
 			for (float cy = 0; cy < 3; ++cy)
 			{
+				//if (cy != 0) continue;
+
 				for (float cz = 0; cz < 3; ++cz)
 				{
-					float minX = cx / 3.0f + offset;
-					float minY = cy / 3.0f + offset;
-					float minZ = cz / 3.0f + offset;
 
-					final float maxZ = minZ + cubeSize;
-					final float maxY = minY + cubeSize;
-					final float maxX = minX + cubeSize;
+					float minXa = cx / 3.0f + cx * offset;
+					float minYa = cy / 3.0f + cy * offset;
+					float minZa = cz / 3.0f + cz * offset;
+
+					float minX = 0 / 3.0f - 0.5f;
+					float minY = 0 / 3.0f - 0.5f;
+					float minZ = 0 / 3.0f - 0.5f;
+
+					final float maxZ = minZ + 1;
+					final float maxY = minY + 1;
+					final float maxX = minX + 1;
 
 					final float uA = 0 / 4f * 16;
 					final float uB = 1 / 4f * 16;
@@ -143,40 +159,63 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 					final float vC = 1 / 4f * 16;
 					final float vD = 0 / 4f * 16;
 
-					bufferbuilder.pos(minX, minY, maxZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(0, 0, -1).endVertex();
-					bufferbuilder.pos(maxX, minY, maxZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(0, 0, -1).endVertex();
-					bufferbuilder.pos(maxX, maxY, maxZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(0, 0, -1).endVertex();
-					bufferbuilder.pos(minX, maxY, maxZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(0, 0, -1).endVertex();
+					Matrix4f transform = Matrix4f.setIdentity(new Matrix4f());
 
-					bufferbuilder.pos(minX, maxY, minZ).tex(sprite.getInterpolatedU(uE), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(0, 0, 1).endVertex();
-					bufferbuilder.pos(maxX, maxY, minZ).tex(sprite.getInterpolatedU(uD), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(0, 0, 1).endVertex();
-					bufferbuilder.pos(maxX, minY, minZ).tex(sprite.getInterpolatedU(uD), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(0, 0, 1).endVertex();
-					bufferbuilder.pos(minX, minY, minZ).tex(sprite.getInterpolatedU(uE), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(0, 0, 1).endVertex();
+					transform = transform.translate(new Vector3f(minXa, minYa, minZa));
+					//transform = transform.scale(new Vector3f(0.25f, 0.25f, 0.25f));
+					transform = transform.rotate((float)(rotation * (Math.PI / 2)), new Vector3f(1.0f, 0.0f, 0.0f));
 
-					bufferbuilder.pos(maxX, maxY, minZ).tex(sprite.getInterpolatedU(uD), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(-1, 0, 0).endVertex();
-					bufferbuilder.pos(maxX, maxY, maxZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(-1, 0, 0).endVertex();
-					bufferbuilder.pos(maxX, minY, maxZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(-1, 0, 0).endVertex();
-					bufferbuilder.pos(maxX, minY, minZ).tex(sprite.getInterpolatedU(uD), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(-1, 0, 0).endVertex();
 
-					bufferbuilder.pos(minX, minY, minZ).tex(sprite.getInterpolatedU(uA), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(1, 0, 0).endVertex();
-					bufferbuilder.pos(minX, minY, maxZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(1, 0, 0).endVertex();
-					bufferbuilder.pos(minX, maxY, maxZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(1, 0, 0).endVertex();
-					bufferbuilder.pos(minX, maxY, minZ).tex(sprite.getInterpolatedU(uA), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(1, 0, 0).endVertex();
+					makeVertex(transform, bufferbuilder, sprite, minX, minY, maxZ, uB, vB, r, g, b, a, 0, 0, -1);
+					makeVertex(transform, bufferbuilder, sprite, maxX, minY, maxZ, uC, vB, r, g, b, a, 0, 0, -1);
+					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, maxZ, uC, vC, r, g, b, a, 0, 0, -1);
+					makeVertex(transform, bufferbuilder, sprite, minX, maxY, maxZ, uB, vC, r, g, b, a, 0, 0, -1);
 
-					bufferbuilder.pos(minX, minY, minZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vA)).color(r, g, b, a).normal(0, -1, 0).endVertex();
-					bufferbuilder.pos(maxX, minY, minZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vA)).color(r, g, b, a).normal(0, -1, 0).endVertex();
-					bufferbuilder.pos(maxX, minY, maxZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(0, -1, 0).endVertex();
-					bufferbuilder.pos(minX, minY, maxZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vB)).color(r, g, b, a).normal(0, -1, 0).endVertex();
+					makeVertex(transform, bufferbuilder, sprite, minX, maxY, minZ, uE, vC, r, g, b, a, 0, 0, 1);
+					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, minZ, uD, vC, r, g, b, a, 0, 0, 1);
+					makeVertex(transform, bufferbuilder, sprite, maxX, minY, minZ, uD, vB, r, g, b, a, 0, 0, 1);
+					makeVertex(transform, bufferbuilder, sprite, minX, minY, minZ, uE, vB, r, g, b, a, 0, 0, 1);
 
-					bufferbuilder.pos(minX, maxY, maxZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(0, 1, 0).endVertex();
-					bufferbuilder.pos(maxX, maxY, maxZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vC)).color(r, g, b, a).normal(0, 1, 0).endVertex();
-					bufferbuilder.pos(maxX, maxY, minZ).tex(sprite.getInterpolatedU(uC), sprite.getInterpolatedV(vD)).color(r, g, b, a).normal(0, 1, 0).endVertex();
-					bufferbuilder.pos(minX, maxY, minZ).tex(sprite.getInterpolatedU(uB), sprite.getInterpolatedV(vD)).color(r, g, b, a).normal(0, 1, 0).endVertex();
+					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, minZ, uD, vC, r, g, b, a, -1, 0, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, maxZ, uC, vC, r, g, b, a, -1, 0, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, minY, maxZ, uC, vB, r, g, b, a, -1, 0, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, minY, minZ, uD, vB, r, g, b, a, -1, 0, 0);
 
+					makeVertex(transform, bufferbuilder, sprite, minX, minY, minZ, uA, vB, r, g, b, a, 1, 0, 0);
+					makeVertex(transform, bufferbuilder, sprite, minX, minY, maxZ, uB, vB, r, g, b, a, 1, 0, 0);
+					makeVertex(transform, bufferbuilder, sprite, minX, maxY, maxZ, uB, vC, r, g, b, a, 1, 0, 0);
+					makeVertex(transform, bufferbuilder, sprite, minX, maxY, minZ, uA, vC, r, g, b, a, 1, 0, 0);
+
+					makeVertex(transform, bufferbuilder, sprite, minX, minY, minZ, uB, vA, r, g, b, a, 0, -1, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, minY, minZ, uC, vA, r, g, b, a, 0, -1, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, minY, maxZ, uC, vB, r, g, b, a, 0, -1, 0);
+					makeVertex(transform, bufferbuilder, sprite, minX, minY, maxZ, uB, vB, r, g, b, a, 0, -1, 0);
+
+					makeVertex(transform, bufferbuilder, sprite, minX, maxY, maxZ, uB, vC, r, g, b, a, 0, 1, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, maxZ, uC, vC, r, g, b, a, 0, 1, 0);
+					makeVertex(transform, bufferbuilder, sprite, maxX, maxY, minZ, uC, vD, r, g, b, a, 0, 1, 0);
+					makeVertex(transform, bufferbuilder, sprite, minX, maxY, minZ, uB, vD, r, g, b, a, 0, 1, 0);
+
+					rotation++;
 				}
 			}
 		}
 		tessellator.draw();
 		GlStateManager.popMatrix();
+	}
+
+	Vector4f vec3f = new Vector4f();
+	Vector4f dest = new Vector4f();
+
+	private void makeVertex(Matrix4f transform, BufferBuilder bufferbuilder, TextureAtlasSprite sprite, float x, float y, float z, float u, float v, float r, float g, float b, float a, int normalX, int normalY, int normalZ)
+	{
+
+		vec3f.set(x, y, z, 1);
+
+		Matrix4f.transform(transform, vec3f, dest);
+
+
+		bufferbuilder.pos(dest.x, dest.y, dest.z).tex(sprite.getInterpolatedU(u), sprite.getInterpolatedV(v)).color(r, g, b, a).normal(normalX, normalY, normalZ).endVertex();
+
 	}
 }
