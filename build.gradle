@@ -96,5 +96,3 @@ sourceSets {
         }
     }
 }
-
-tasks.build.dependsOn apiJar
