@@ -23,6 +23,6 @@ public class ClientRegistrationEvents
 	@SubscribeEvent
 	public static void onTextureStitch(TextureStitchEvent.Pre event) {
 		final TextureMap map = event.getMap();
-		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal2"));
+		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal3"));
 	}
 }

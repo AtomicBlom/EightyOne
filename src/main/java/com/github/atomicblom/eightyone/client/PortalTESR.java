@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL11;
 
 public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 {
-	String portalTexture = new ResourceLocation(Reference.MOD_ID, "blocks/portal2").toString();
+	String portalTexture = new ResourceLocation(Reference.MOD_ID, "blocks/portal3").toString();
 
 	@Override
 	public void render(PortalTileEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alphalpha)
@@ -27,7 +27,6 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y, z);
-		GlStateManager.pushMatrix();
 
 		final float yRotation = te.getYRotation() + partialTicks;
 		te.setYRotation(yRotation);
