@@ -1,7 +1,9 @@
 package com.github.atomicblom.eightyone.world.structure;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.template.ITemplateProcessor;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
@@ -12,6 +14,7 @@ public class NxNTemplate extends Template
 
 	private final int yOffset;
 	private final int height;
+	private boolean spawnable;
 
 	public NxNTemplate(StructureProperties structureProperties)
 	{
@@ -32,31 +35,19 @@ public class NxNTemplate extends Template
 	@Override
 	public void addBlocksToWorldChunk(World worldIn, BlockPos pos, PlacementSettings placementIn)
 	{
-		super.addBlocksToWorldChunk(worldIn, pos, placementIn);
+		placementIn.setBoundingBoxFromChunk();
+		this.addBlocksToWorld(worldIn, pos, placementIn);
 	}
 
-	private BlockPos offset(BlockPos pos)
+	public BlockPos offset(BlockPos pos)
 	{
 		final int xOffset = (9 - getSize().getX()) / 2;
 		final int zOffset = (9 - getSize().getZ()) / 2;
 		return pos.add(xOffset, yOffset + 1, zOffset);
 	}
 
-	@Override
-	public void addBlocksToWorld(World worldIn, BlockPos pos, PlacementSettings placementIn)
+	public boolean isSpawnable()
 	{
-		super.addBlocksToWorld(worldIn, pos, placementIn);
-	}
-
-	@Override
-	public void addBlocksToWorld(World worldIn, BlockPos pos, PlacementSettings placementIn, int flags)
-	{
-		super.addBlocksToWorld(worldIn, pos, placementIn, flags);
-	}
-
-	@Override
-	public void addBlocksToWorld(World worldIn, BlockPos pos, @Nullable ITemplateProcessor templateProcessor, PlacementSettings placementIn, int flags)
-	{
-		super.addBlocksToWorld(worldIn, offset(pos), templateProcessor, placementIn, 0);
+		return spawnable;
 	}
 }

@@ -256,7 +256,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 				{
 					template.addBlocksToWorldChunk(
 							world,
-							new BlockPos(room.getX(), BASE_HEIGHT, room.getZ()),
+							template.offset(new BlockPos(room.getX(), BASE_HEIGHT, room.getZ())),
 							placementSettings);
 				}
 			}

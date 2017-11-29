@@ -1,6 +1,7 @@
 package com.github.atomicblom.eightyone.world.structure;
 
 import com.github.atomicblom.eightyone.Logger;
+import com.github.atomicblom.eightyone.util.FileSystem;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -21,9 +22,15 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.datafix.DataFixer;
 import net.minecraft.util.datafix.FixTypes;
-import net.minecraft.world.gen.structure.template.Template;
+import net.minecraftforge.common.crafting.CraftingHelper;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TemplateManager
 {
-	private static final LoadingCache<String, NxNTemplate> TemplateCache;
+	private static final LoadingCache<ResourceLocation, NxNTemplate> TemplateCache;
 
 	static {
 		TemplateCache = CacheBuilder.newBuilder()
@@ -41,57 +48,64 @@ public class TemplateManager
 				.build(new TemplateLoader());
 	}
 
-	private static Map<String, StructureProperties> validStructures = Maps.newHashMap();
-	private static List<String> validStructureNames = Lists.newArrayList();
-	private static List<String> spawnableStructureNames = Lists.newArrayList();
+	private static Map<ResourceLocation, NxNTemplate> validStructures = Maps.newHashMap();
+	private static List<ResourceLocation> validStructureNames = Lists.newArrayList();
+	private static List<ResourceLocation> spawnableStructureNames = Lists.newArrayList();
 
 	public static void getValidTemplates() {
-		final Map<String, StructureProperties> validStructures = Maps.newHashMap();
-		final List<String> validStructureNames = Lists.newArrayList();
-		final StructureList structureList = getStructureList();
-		if (structureList == null) {
-			return;
-		}
+		final Map<ResourceLocation, NxNTemplate> validStructures = Maps.newHashMap();
+		final List<ResourceLocation> validStructureNames = Lists.newArrayList();
 
-		for (final Entry<String, StructureProperties> structureFile : structureList.structureList.entrySet())
+		for (final ModContainer mod : Loader.instance().getActiveModList())
 		{
-			final StructureProperties value = structureFile.getValue();
-			final String key = structureFile.getKey();
-			if (canUseStructure(key, value)) {
-				validStructures.put(key, value);
-				validStructureNames.add(key);
-				if (value.spawnable)
-				{
-					spawnableStructureNames.add(key);
-				}
-			}
+			CraftingHelper.findFiles(mod, "assets/" + mod.getModId() + "nxnstructures", null,
+					(root, file) -> {
+						final String relative = root.relativize(file).toString();
+						if (!"nbt".equals(FilenameUtils.getExtension(file.toString())) || relative.startsWith("_"))
+							return true;
+
+						final String name = FilenameUtils.removeExtension(relative).replaceAll("\\\\", "/");
+						final ResourceLocation key = new ResourceLocation(mod.getModId(), name);
+						InputStream reader = null;
+
+						try
+						{
+
+							reader = Files.newInputStream(file);
+							final NBTTagCompound rawTemplate = CompressedStreamTools.readCompressed(reader);
+							if (isValidNBT(key, rawTemplate)) {
+								NxNTemplate template = new NxNTemplate();
+								template.read(rawTemplate);
+
+								validStructures.put(key, template);
+								validStructureNames.add(key);
+								if (template.isSpawnable())
+								{
+									spawnableStructureNames.add(key);
+								}
+							}
+						}
+						catch (IOException ioexception)
+						{
+							Logger.severe("Couldn't read advancement " + key + " from " + file, (Throwable)ioexception);
+							return false;
+						}
+						finally
+						{
+							IOUtils.closeQuietly(reader);
+						}
+
+						return true;
+					},
+					true,
+					true);
 		}
 
 		TemplateManager.validStructures = validStructures;
 		TemplateManager.validStructureNames = validStructureNames;
 	}
 
-	private static StructureList getStructureList()
-	{
-		final Minecraft minecraft = Minecraft.getMinecraft();
-		final IResourceManager resourceManager = minecraft.getResourceManager();
-		try
-		{
-			final IResource eightyone = resourceManager.getResource(new ResourceLocation("eightyone", "structurelist.json"));
-			final Gson gson = new GsonBuilder()
-					.setPrettyPrinting()
-					.setFieldNamingPolicy(FieldNamingPolicy.IDENTITY)
-					.create();
-			final InputStreamReader reader = new InputStreamReader(eightyone.getInputStream());
-			return gson.fromJson(reader, StructureList.class);
-		} catch (final IOException e)
-		{
-			Logger.severe("Could not read the structure list from EightyOne. No internal structures can be rendered.");
-			return null;
-		}
-	}
-
-	public static NxNTemplate getTemplateByName(String filename) {
+	public static NxNTemplate getTemplateByName(ResourceLocation filename) {
 		try
 		{
 			return TemplateCache.get(filename);
@@ -104,9 +118,9 @@ public class TemplateManager
 
 	public static NxNTemplate getTemplateByChance(double templateChance)
 	{
-		final List<String> vsn = spawnableStructureNames;
+		final List<ResourceLocation> vsn = spawnableStructureNames;
 		final double v = vsn.size() * Math.abs(templateChance);
-		final String selectedStructure = vsn.get((int) v);
+		final ResourceLocation selectedStructure = vsn.get((int) v);
 
 		try
 		{
@@ -117,44 +131,30 @@ public class TemplateManager
 		}
 	}
 
-	private static boolean canUseStructure(String fileName, StructureProperties properties)
+	private static boolean isValidNBT(ResourceLocation resource, NBTTagCompound rawTemplate)
 	{
-		try
+		final NBTTagList palette;
+
+		palette = rawTemplate.getTagList("palette", 10);
+		for (int i = 0; i < palette.tagCount(); ++i)
 		{
-			final NBTTagCompound rawTemplate;
-			final NBTTagList palette;
-			final NBTTagList sizeNbt;
-			try (IResource structureFileResource = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation("eightyone", "structures/" + fileName + ".nbt")))
-			{
-				rawTemplate = CompressedStreamTools.readCompressed(structureFileResource.getInputStream());
+			final NBTTagCompound paletteEntry = palette.getCompoundTagAt(i);
+			//We're going to use minecraft air to detect blocks that can't be used, so we need to explicitly ok air here
+			if (paletteEntry.getString("Name") == "minecraft:air") continue;
+
+			final IBlockState iBlockState = NBTUtil.readBlockState(paletteEntry);
+			if (iBlockState == Blocks.AIR) {
+				Logger.warning("Cannot use structure " + resource + " because blockstate " + iBlockState + " is not present.");
+				return false;
 			}
-
-			palette = rawTemplate.getTagList("palette", 10);
-			for (int i = 0; i < palette.tagCount(); ++i)
-			{
-				final NBTTagCompound paletteEntry = palette.getCompoundTagAt(i);
-				//We're going to use minecraft air to detect blocks that can't be used, so we need to explicitly ok air here
-				if (paletteEntry.getString("Name") == "minecraft:air") continue;
-
-				final IBlockState iBlockState = NBTUtil.readBlockState(paletteEntry);
-				if (iBlockState == Blocks.AIR) {
-					Logger.warning("Cannot use structure " + fileName + " because blockstate " + iBlockState + " is not present.");
-					return false;
-				}
-			}
-
-			sizeNbt = rawTemplate.getTagList("size", 3);
-			properties.height = sizeNbt.getIntAt(1);
-
-			return true;
-		} catch (final IOException e) {
-			return false;
 		}
+
+		return true;
 	}
 
-	private static class TemplateLoader extends CacheLoader<String, NxNTemplate> {
+	private static class TemplateLoader extends CacheLoader<ResourceLocation, NxNTemplate> {
 		@Override
-		public NxNTemplate load(String key) throws Exception
+		public NxNTemplate load(ResourceLocation key) throws Exception
 		{
 			try
 			{
@@ -168,7 +168,7 @@ public class TemplateManager
 					nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
 				}
 
-				final NxNTemplate template = new NxNTemplate(validStructures.get(key));
+				final NxNTemplate template = validStructures.get(key);
 				template.read(dataFixer.process(FixTypes.STRUCTURE, nbttagcompound));
 				return template;
 
