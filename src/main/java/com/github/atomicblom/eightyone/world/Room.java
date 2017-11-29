@@ -1,6 +1,9 @@
 package com.github.atomicblom.eightyone.world;
 
-import java.util.BitSet;
+import com.github.atomicblom.eightyone.util.EntranceHelper;
+import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 
 public class Room
 {
@@ -10,10 +13,11 @@ public class Room
 	private final int width;
 	private final int length;
 	private final double templateChance;
-	private final long properties;
-	private String templateName;
+	private ResourceLocation templateName;
+	private boolean present;
+	private boolean[] doorways = new boolean[EnumFacing.HORIZONTALS.length];
 
-	public Room(int id, int x, int z, int width, int length, double templateChance, long properties) {
+	public Room(int id, int x, int z, int width, int length, double templateChance) {
 
 		this.id = id;
 		this.x = x;
@@ -21,7 +25,6 @@ public class Room
 		this.width = width;
 		this.length = length;
 		this.templateChance = templateChance;
-		this.properties = properties;
 	}
 
 	public int getX() {
@@ -40,10 +43,6 @@ public class Room
 	public boolean isWall(int x, int z) {
 		return x == this.x || x == (this.x + width - 1) ||
 				z == this.z || z == (this.z + length - 1);
-	}
-
-	public boolean hasProperty(RoomProperties property) {
-		return (properties & property.getBitMask()) != 0;
 	}
 
 	@Override
@@ -75,12 +74,36 @@ public class Room
 		return templateChance;
 	}
 
-	public void setTemplate(String templateName) {
+	public void setTemplate(ResourceLocation templateName) {
 
 		this.templateName = templateName;
 	}
 
-	public String getTemplate() {
+	public ResourceLocation getTemplate() {
 		return this.templateName;
+	}
+
+	public void setPresent(boolean present)
+	{
+		this.present = present;
+	}
+
+	public boolean isPresent()
+	{
+		return present;
+	}
+
+	public void setDoorwayPresent(EnumFacing direction, boolean isPresent)
+	{
+		this.doorways[direction.getHorizontalIndex()] = isPresent;
+	}
+
+	public boolean isDoorwayPresent(EnumFacing direction) {
+		return this.doorways[direction.getHorizontalIndex()];
+	}
+
+	public TemplateCharacteristics getCharacteristics()
+	{
+		return EntranceHelper.calculateCharacteristics(doorways);
 	}
 }

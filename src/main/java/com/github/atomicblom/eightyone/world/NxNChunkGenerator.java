@@ -1,7 +1,7 @@
 package com.github.atomicblom.eightyone.world;
 
+import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.Point2D;
-import com.github.atomicblom.eightyone.world.structure.StructureProperties;
 import com.github.atomicblom.eightyone.world.structure.NxNTemplate;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import com.google.common.cache.CacheBuilder;
@@ -12,6 +12,7 @@ import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -22,7 +23,6 @@ import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
-import net.minecraft.world.gen.structure.template.Template;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
@@ -96,13 +96,13 @@ public class NxNChunkGenerator implements IChunkGenerator
 			for (int x = 0; x < 16; ++x)
 			{
 				final Room room = getRoomAt(posX + x, posZ + z);
-				if (!room.hasProperty(RoomProperties.IsPresent)) continue;
+				if (!room.isPresent()) continue;
 
 				final NxNTemplate template;
 				if (room.hasSpecificTemplate()) {
 					template = TemplateManager.getTemplateByName(room.getTemplate());
 				} else {
-					template = TemplateManager.getTemplateByChance(room.getTemplateChance());
+					template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
 				}
 				if (template != null && template.isCustomRoom()) continue;
 
@@ -162,9 +162,9 @@ public class NxNChunkGenerator implements IChunkGenerator
 
 				final Room room = getRoomAt(roomX, roomZ);
 
-				if (!room.hasProperty(RoomProperties.IsPresent)) continue;
+				if (!room.isPresent()) continue;
 
-				if (room.hasProperty(RoomProperties.VerticalExit)) {
+				if (room.isDoorwayPresent(EnumFacing.SOUTH)) {
 					//Generate Vertical exit
 
 					final int xPos = room.getX() + 4;
@@ -204,7 +204,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 					}
 
 				}
-				if (room.hasProperty(RoomProperties.HorizontalExit)) {
+				if (room.isDoorwayPresent(EnumFacing.EAST)) {
 					//Generate
 
 					final int xPos = room.getX() + 8;
@@ -249,7 +249,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 				if (room.hasSpecificTemplate()) {
 					template = TemplateManager.getTemplateByName(room.getTemplate());
 				} else {
-					template = TemplateManager.getTemplateByChance(room.getTemplateChance());
+					template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
 				}
 
 				if (template != null)
@@ -388,25 +388,16 @@ public class NxNChunkGenerator implements IChunkGenerator
 		@Override
 		public Room load(Point2D key) throws Exception
 		{
-			//this.MakeRooms();
 			final int x = key.getX() / 10;
 			final int z = key.getZ() / 10;
 
-			final boolean isPresent = isRoomPresent(x, z);
-			int properties = 0;
+			final Room result = new Room(roomId, key.getX(), key.getZ(), 9, 9, noiseGen.getValue(x, z));
+			result.setPresent(isRoomPresent(x, z));
+			result.setDoorwayPresent(EnumFacing.SOUTH, isRoomPresent(x, z + 1));
+			result.setDoorwayPresent(EnumFacing.NORTH, isRoomPresent(x, z - 1));
+			result.setDoorwayPresent(EnumFacing.EAST, isRoomPresent(x + 1, z));
+			result.setDoorwayPresent(EnumFacing.WEST, isRoomPresent(x - 1, z));
 
-			if (isPresent) {
-				properties = 12;
-			}
-
-			if (isRoomPresent(x, z + 1)) {
-				properties |= RoomProperties.VerticalExit.getBitMask();
-			}
-			if (isRoomPresent(x + 1, z)) {
-				properties |= RoomProperties.HorizontalExit.getBitMask();
-			}
-
-			final Room result = new Room(roomId, key.getX(), key.getZ(), 9, 9, noiseGen.getValue(x, z), properties);
 			roomId++;
 			return result;
 		}

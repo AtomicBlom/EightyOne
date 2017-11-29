@@ -12,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -52,7 +53,7 @@ public class EightyOneTeleporter extends Teleporter {
             final BlockPos startPos = new BlockPos(startingRoom.getX(), chunkGenerator.getFloorHeight(), startingRoom.getZ());
             for (final BlockPos pos : new SpiralIterable(startPos, 10) ) {
                 final Room spawnRoom = chunkGenerator.getRoomAt(pos.getX(), pos.getZ());
-                if (spawnRoom.hasProperty(RoomProperties.IsPresent)) {
+                if (spawnRoom.isPresent()) {
                     makePortal(entityIn.world, new BlockPos(pos), false);
                     return true;
                 }
@@ -66,7 +67,7 @@ public class EightyOneTeleporter extends Teleporter {
     }
 
     private void makePortal(World world, BlockPos blockPos, boolean fillUnderneath) {
-        final NxNTemplate spawn = TemplateManager.getTemplateByName("portal");
+        final NxNTemplate spawn = TemplateManager.getTemplateByName(new ResourceLocation(Reference.MOD_ID, "portal"));
         final PlacementSettings placementSettings = new PlacementSettings();
         final Template template = spawn;
         template.addBlocksToWorld(world, blockPos, placementSettings);

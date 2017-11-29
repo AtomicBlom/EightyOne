@@ -2,8 +2,8 @@ package com.github.atomicblom.eightyone.world;
 
 public enum RoomProperties
 {
-	VerticalExit(1),
-	HorizontalExit(2),
+	SouthExit(1),
+	EastExit(2),
 	IsPresent(4|8)
 	;
 
