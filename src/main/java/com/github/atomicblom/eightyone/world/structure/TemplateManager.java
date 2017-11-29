@@ -18,9 +18,12 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTUtil;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.datafix.DataFixer;
 import net.minecraft.util.datafix.FixTypes;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -143,6 +146,22 @@ public class TemplateManager
 				}
 			}
 
+			NxNTemplate template = new NxNTemplate();
+			template.read(rawTemplate);
+			PlacementSettings placementSettings = new PlacementSettings();
+			Map<BlockPos, String> dataBlocks = template.getDataBlocks(BlockPos.ORIGIN, placementSettings);
+			for (Entry<BlockPos, String> dataBlock : dataBlocks.entrySet()) {
+				String dataValue = dataBlock.getValue().toLowerCase();
+				BlockPos location = dataBlock.getKey();
+				if (dataValue.startsWith("entrance")) {
+					EnumFacing quadrant = getQuadrant(location, template.getSize().getZ());
+					if (quadrant == null) {
+						Logger.warning("It looks like a structure has an entrance placed on a diagonal. This is not supported, structure name %s, location %s", fileName, location);
+						template.addEntrance(quadrant);
+					}
+				}
+			}
+
 			sizeNbt = rawTemplate.getTagList("size", 3);
 			properties.height = sizeNbt.getIntAt(1);
 
@@ -150,6 +169,26 @@ public class TemplateManager
 		} catch (final IOException e) {
 			return false;
 		}
+	}
+
+	private static EnumFacing getQuadrant(BlockPos location, int length) {
+		int qa = location.getX() - location.getZ();
+		int qb = location.getX() - ((length - 1) - location.getZ());
+
+		if (qa > 0 && qb < 0) {
+			return EnumFacing.WEST;
+		}
+		if (qa > 0 && qb > 0) {
+			return EnumFacing.SOUTH;
+		}
+		if (qa <0 && qb < 0) {
+			return EnumFacing.NORTH;
+		}
+		if (qa < 0 && qb > 0) {
+			return EnumFacing.EAST;
+		}
+
+		return null;
 	}
 
 	private static class TemplateLoader extends CacheLoader<String, NxNTemplate> {
@@ -168,7 +207,7 @@ public class TemplateManager
 					nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
 				}
 
-				final NxNTemplate template = new NxNTemplate(validStructures.get(key));
+				final NxNTemplate template = new NxNTemplate();
 				template.read(dataFixer.process(FixTypes.STRUCTURE, nbttagcompound));
 				return template;
 
