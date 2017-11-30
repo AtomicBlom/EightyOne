@@ -36,7 +36,7 @@ public class NxNTemplate extends Template
 	public void addBlocksToWorldChunk(World worldIn, BlockPos pos, PlacementSettings placementIn)
 	{
 		placementIn.setBoundingBoxFromChunk();
-		super.addBlocksToWorldChunk(worldIn, offset(pos), placementIn);
+		super.addBlocksToWorldChunk(worldIn, pos, placementIn);
 	}
 
 	public BlockPos offset(BlockPos pos)

@@ -3,6 +3,7 @@ package com.github.atomicblom.eightyone.world;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.Point2D;
 import com.github.atomicblom.eightyone.world.structure.NxNTemplate;
+import com.github.atomicblom.eightyone.world.structure.RoomTemplate;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -98,13 +99,9 @@ public class NxNChunkGenerator implements IChunkGenerator
 				final Room room = getRoomAt(posX + x, posZ + z);
 				if (!room.isPresent()) continue;
 
-				final NxNTemplate template;
-				if (room.hasSpecificTemplate()) {
-					template = TemplateManager.getTemplateByName(room.getTemplate());
-				} else {
-					template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
-				}
-				if (template != null && template.isCustomRoom()) continue;
+				final RoomTemplate template;
+				template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
+				if (template != null && template.getTemplate().isCustomRoom()) continue;
 
 				if (room.contains(posX + x, posZ + z))
 				{
@@ -113,7 +110,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 					final int xOffset = room.getXOffset(posX + x);
 					final int zOffset = room.getZOffset(posZ + z);
 
-					final int roomHeight = BASE_HEIGHT + template.getHeight() + 1;
+					final int roomHeight = BASE_HEIGHT + template.getTemplate().getHeight() + 1;
 					if (renderRoof)
 					{
 						if ((xOffset == 2 || xOffset == 3 || xOffset == 5 || xOffset == 6) &&
@@ -245,18 +242,14 @@ public class NxNChunkGenerator implements IChunkGenerator
 					}
 				}
 
-				final NxNTemplate template;
-				if (room.hasSpecificTemplate()) {
-					template = TemplateManager.getTemplateByName(room.getTemplate());
-				} else {
-					template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
-				}
+				final RoomTemplate template;
+				template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
 
 				if (template != null)
 				{
 					template.addBlocksToWorldChunk(
 							world,
-							template.offset(new BlockPos(room.getX(), BASE_HEIGHT, room.getZ())),
+							new BlockPos(room.getX(), BASE_HEIGHT, room.getZ()),
 							placementSettings);
 				}
 			}

@@ -16,6 +16,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTUtil;
+import net.minecraft.util.Mirror;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.datafix.DataFixer;
@@ -131,11 +132,13 @@ public class TemplateManager
 		}
 	}
 
-	public static NxNTemplate getTemplateByChance(TemplateCharacteristics roomCharacteristics, double templateChance)
+	public static RoomTemplate getTemplateByChance(TemplateCharacteristics roomCharacteristics, double templateChance)
 	{
-		final List<ResourceLocation> validStructures = Lists.newArrayList();
+		final List<RoomTemplate> validStructures = Lists.newArrayList();
 		final Shape roomShape = roomCharacteristics.getShape();
 		final List<Rotation> roomRotations = Lists.newArrayList(roomCharacteristics.getTemplateRotations());
+
+		final Rotation roomRotation = roomRotations.get((int)(roomRotations.size() * Math.abs(templateChance)));
 
 		for (final ResourceLocation structureName : spawnableStructureNames)
 		{
@@ -145,17 +148,13 @@ public class TemplateManager
 				final TemplateCharacteristics characteristics = template.getCharacteristics();
 
 				if (characteristics.getShape() == roomShape) {
-					final List<Rotation> rotations = Lists.newArrayList(characteristics.getTemplateRotations());
-					if (roomRotations.size() == rotations.size()) {
-						boolean valid = true;
-						for (int i = 0; i < roomRotations.size(); i++)
-						{
-							if (roomRotations.get(i) != rotations.get(i)) {
-								valid = false;
-							}
-						}
-						if (valid) validStructures.add(structureName);
-					}
+					final List<Rotation> templateRotations = Lists.newArrayList(characteristics.getTemplateRotations());
+					final Rotation templateRotation = templateRotations.get((int)(templateRotations.size() * Math.abs(templateChance)));
+
+					Rotation rotationToApply = getRotationToApply(templateRotation, roomRotation);
+
+					RoomTemplate roomTemplate = new RoomTemplate(structureName, template, rotationToApply, Mirror.NONE);
+					validStructures.add(roomTemplate);
 				}
 			} catch (final ExecutionException e)
 			{
@@ -167,19 +166,20 @@ public class TemplateManager
 			Logger.severe("wtf? No valid structures?");
 		}
 
-		try {
-			final double v = validStructures.size() * Math.abs(templateChance);
-			final ResourceLocation key = validStructures.get((int) v);
+		final double v = validStructures.size() * Math.abs(templateChance);
+		final RoomTemplate roomTemplate = validStructures.get((int) v);
+		return roomTemplate;
+	}
 
-			final NxNTemplate template = TemplateCache.get(key);
-			final TemplateCharacteristics characteristics = template.getCharacteristics();
-			return template;
-		} catch (final ExecutionException e)
-		{
-			return null;
+
+	private static Rotation[] rotations = Rotation.values();
+	private static Rotation getRotationToApply(Rotation templateRotation, Rotation roomRotation) {
+		int newOrdinal = templateRotation.ordinal() - roomRotation.ordinal();
+		if (newOrdinal < 0) {
+			newOrdinal += 4;
 		}
-
-
+		Rotation rotation = rotations[newOrdinal];
+		return rotation;
 	}
 
 	private static boolean isValidNBT(ResourceLocation resource, NBTTagCompound rawTemplate)
