@@ -13,22 +13,26 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
 public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 {
 	String portalTexture = new ResourceLocation(Reference.MOD_ID, "blocks/portal3").toString();
-	private BufferBuilder buffer;
+	private BufferBuilder portalArtifact;
+	private BufferBuilder portalFrame;
 
 	@Override
 	public void render(PortalTileEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alphalpha)
 	{
 
-		if (buffer == null) {
-			buffer = createBuffer();
+		if (portalArtifact == null) {
+			portalArtifact = createArtifactBuffer();
 		}
+		if (portalFrame == null) {
+			portalFrame = createFrameBuffer();
+		}
+
 		WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
 
 		bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -36,7 +40,28 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y, z);
 
-		renderGuide();
+		//Translucent Render Pass A - fill Z-Buffer
+		GlStateManager.enableBlend();
+		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.enableAlpha();
+		GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0f);
+
+		GlStateManager.depthFunc(GL11.GL_LEQUAL);
+		GlStateManager.colorMask(false, false, false, false);
+
+		renderFrame(uploader, 0.5f);
+
+		//Translucent Render Pass B - Render portal
+		GlStateManager.depthFunc(GL11.GL_EQUAL);
+		GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0.0f);
+		GlStateManager.colorMask(true, true, true, true);
+		renderFrame(uploader, 0.5f);
+
+		GlStateManager.depthFunc(GL11.GL_LEQUAL);
+		GlStateManager.disableBlend();
+		GlStateManager.disableAlpha();
+
+
 
 		final float yRotation = te.getYRotation() + partialTicks;
 		te.setYRotation(yRotation);
@@ -99,9 +124,38 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		GlStateManager.popMatrix();
 	}
 
-	private void renderGuide()
+	private void renderFrame(WorldVertexBufferUploader uploader, float alpha)
 	{
-		WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
+		GlStateManager.color(
+				(alpha / 4) + 0.75f,
+				1.0F,
+				(alpha / 4) + 0.75f,
+				alpha);
+
+		uploader.draw(portalFrame);
+	}
+
+	private void renderRotatingPortal(WorldVertexBufferUploader uploader, float yRotation, float scale, float alpha)
+	{
+		GlStateManager.pushMatrix();
+
+		GlStateManager.translate(0.5, 0.5, 0.5);
+		GlStateManager.rotate(yRotation, 0, 1, 0);
+		GlStateManager.rotate(yRotation / 2, 1, 0, 0);
+		GlStateManager.scale(scale, scale, scale);
+
+		GlStateManager.color(
+				(alpha / 4) + 0.75f,
+				1.0F,
+				(alpha / 4) + 0.75f,
+				alpha);
+
+		uploader.draw(portalArtifact);
+
+		GlStateManager.popMatrix();
+	}
+
+	private BufferBuilder createFrameBuffer() {
 		final TextureMap textureMapBlocks = Minecraft.getMinecraft().getTextureMapBlocks();
 		final TextureAtlasSprite sprite = textureMapBlocks.getAtlasSprite(portalTexture);
 
@@ -136,7 +190,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 				new Vector3f(maxX, maxY, maxZ)
 		);
 
-		for(final float z : new float[] { minZ, maxZ})
+		for(final float z : new float[] { minZ + 1 + 0.01f, maxZ + 0.01f})
 		{
 
 			makeVertex(transform, bufferbuilder, sprite, minX + 1, minY, z, uB, vB, normal.x, normal.y, normal.z);
@@ -165,7 +219,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 				new Vector3f(maxX - 1, minY, minZ),
 				new Vector3f(maxX + 1, minY + 1, minZ)
 		);
-		for(final float z : new float[] { minZ - 1, maxZ - 1})
+		for(final float z : new float[] { minZ - 0.01f, maxZ - 1 - 0.01f})
 		{
 			makeVertex(transform, bufferbuilder, sprite, minX + 1, minY + 1, z, uE, vC, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, maxX - 1, minY + 1, z, uD, vC, normal.x, normal.y, normal.z);
@@ -193,17 +247,17 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 				new Vector3f(minX, minY + 1, maxZ - 1),
 				new Vector3f(minX, minY, maxZ - 1)
 		);
-		for(final float x : new float[] { minX, maxX})
+		for(final float x : new float[] { minX + 1 + 0.01f, maxX + 0.01f})
 		{
-			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ, uD, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ + 1, uD, vC, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, maxZ - 1, uC, vC, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, x, minY, maxZ - 1, uC, vB, normal.x, normal.y, normal.z);
-			makeVertex(transform, bufferbuilder, sprite, x, minY, minZ, uD, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY, minZ + 1, uD, vB, normal.x, normal.y, normal.z);
 
-			makeVertex(transform, bufferbuilder, sprite, x, maxY, minZ, uD, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY, minZ + 1, uD, vC, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, x, maxY, maxZ - 1, uC, vC, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, maxZ - 1, uC, vB, normal.x, normal.y, normal.z);
-			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ, uD, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ + 1, uD, vB, normal.x, normal.y, normal.z);
 
 			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ, uD, vC, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ + 1, uC, vC, normal.x, normal.y, normal.z);
@@ -215,30 +269,94 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, maxZ, uC, vB, normal.x, normal.y, normal.z);
 			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, maxZ - 1, uD, vB, normal.x, normal.y, normal.z);
 		}
-		uploader.draw(bufferbuilder);
+
+		normal = normalize(
+				new Vector3f(minX, minY, minZ),
+				new Vector3f(minX, minY, maxZ),
+				new Vector3f(minX, maxY, maxZ)
+		);
+		for(final float x : new float[] { minX - 0.01f, maxX - 1 - 0.01f})
+		{
+			makeVertex(transform, bufferbuilder, sprite, x, minY, minZ + 1, uA, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY, maxZ - 1, uB, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, maxZ - 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ + 1, uA, vC, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ + 1, uA, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, maxZ - 1, uB, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY, maxZ - 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY, minZ + 1, uA, vC, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ , uA, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ + 1, uB, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ + 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ , uA, vC, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ , uA, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, minY + 1, minZ + 1, uB, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ + 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, minZ , uA, vC, normal.x, normal.y, normal.z);
+		}
+
+		normal = normalize(
+				new Vector3f(minX, minY, minZ),
+				new Vector3f(maxX, minY, minZ),
+				new Vector3f(maxX, minY, maxZ)
+		);
+		for(final float y : new float[] { minY - 0.01f, maxY - 1 - 0.01f})
+		{
+			makeVertex(transform, bufferbuilder, sprite, minX, y, minZ + 1, uB, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, minZ + 1, uC, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, maxZ - 1, uC, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX, y, maxZ - 1, uB, vB, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, minZ + 1, uB, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX, y, minZ + 1, uC, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX, y, maxZ - 1, uC, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, maxZ - 1, uB, vB, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, minZ, uB, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, minZ, uC, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, minZ + 1, uC, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, minZ + 1, uB, vB, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, maxZ - 1, uB, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, maxZ - 1, uC, vA, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, maxZ, uC, vB, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, maxZ, uB, vB, normal.x, normal.y, normal.z);
+		}
+
+		normal = normalize(
+				new Vector3f(minX, maxY, maxZ),
+				new Vector3f(maxX, maxY, maxZ),
+				new Vector3f(maxX, maxY, minZ)
+		);
+		for(final float y : new float[] { minY + 1 + 0.01f, maxY + 0.01f})
+		{
+			makeVertex(transform, bufferbuilder, sprite, minX, y, maxZ - 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, maxZ - 1, uC, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, minZ + 1, uC, vD, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX, y, minZ + 1, uB, vD, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, maxZ - 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX, y, maxZ - 1, uC, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX, y, minZ + 1, uC, vD, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, minZ + 1, uB, vD, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, maxZ, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, maxZ, uC, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, maxZ - 1, uC, vD, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, maxZ - 1, uB, vD, normal.x, normal.y, normal.z);
+
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, minZ + 1, uB, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, minZ + 1, uC, vC, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, minZ, uC, vD, normal.x, normal.y, normal.z);
+			makeVertex(transform, bufferbuilder, sprite, minX + 1, y, minZ, uB, vD, normal.x, normal.y, normal.z);
+		}
+		return bufferbuilder;
 	}
 
-	private void renderRotatingPortal(WorldVertexBufferUploader uploader, float yRotation, float scale, float alpha)
-	{
-		GlStateManager.pushMatrix();
-
-		GlStateManager.translate(0.5, 0.5, 0.5);
-		GlStateManager.rotate(yRotation, 0, 1, 0);
-		GlStateManager.rotate(yRotation / 2, 1, 0, 0);
-		GlStateManager.scale(scale, scale, scale);
-
-		GlStateManager.color(
-				(alpha / 4) + 0.75f,
-				1.0F,
-				(alpha / 4) + 0.75f,
-				alpha);
-
-		uploader.draw(buffer);
-
-		GlStateManager.popMatrix();
-	}
-
-	private BufferBuilder createBuffer()
+	private BufferBuilder createArtifactBuffer()
 	{
 		final TextureMap textureMapBlocks = Minecraft.getMinecraft().getTextureMapBlocks();
 		final TextureAtlasSprite sprite = textureMapBlocks.getAtlasSprite(portalTexture);

@@ -23,7 +23,6 @@ public class PortalTileEntity extends TileEntity
 		this.yRotation = yRotation;
 	}
 
-
 	public void setPulse(long pulse)
 	{
 		this.pulse = pulse;

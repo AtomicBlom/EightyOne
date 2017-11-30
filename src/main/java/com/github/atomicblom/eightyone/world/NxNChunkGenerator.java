@@ -275,8 +275,6 @@ public class NxNChunkGenerator implements IChunkGenerator
 						world.spawnEntity(sheep);
 					}
 				}
-
-
 			}
 		}
 
