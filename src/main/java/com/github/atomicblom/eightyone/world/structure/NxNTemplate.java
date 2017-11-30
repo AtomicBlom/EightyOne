@@ -5,11 +5,13 @@ import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class NxNTemplate extends Template
 {
@@ -17,9 +19,11 @@ public class NxNTemplate extends Template
 	private int yOffset;
 	private boolean spawnable = true;
 	private TemplateCharacteristics characteristics;
+	private ResourceLocation resourceLocation;
 
-	public NxNTemplate() {
+	public NxNTemplate(ResourceLocation resourceLocation) {
 		characteristics = EntranceHelper.calculateCharacteristics(openEntrances);
+		this.resourceLocation = resourceLocation;
 	}
 
 	public int getHeight()
@@ -36,7 +40,7 @@ public class NxNTemplate extends Template
 	public void addBlocksToWorldChunk(World worldIn, BlockPos pos, PlacementSettings placementIn)
 	{
 		placementIn.setBoundingBoxFromChunk();
-		super.addBlocksToWorldChunk(worldIn, pos, placementIn);
+		super.addBlocksToWorld(worldIn, pos, placementIn, 16 | 2);
 	}
 
 	public BlockPos offset(BlockPos pos)
@@ -62,12 +66,17 @@ public class NxNTemplate extends Template
 	{
 		super.read(compound);
 
+		boolean setYOffsetFromDoorway = true;
+		int doorwayYOffset = 0;
+		int yOffset = 0;
+
 		final PlacementSettings placementSettings = new PlacementSettings();
 		final Map<BlockPos, String> dataBlocks = getDataBlocks(BlockPos.ORIGIN, placementSettings);
-		for (final Map.Entry<BlockPos, String> dataBlock : dataBlocks.entrySet()) {
+		for (final Entry<BlockPos, String> dataBlock : dataBlocks.entrySet()) {
 			final String dataValue = dataBlock.getValue().toLowerCase();
 			final BlockPos location = dataBlock.getKey();
 			if (dataValue.startsWith("doorway")) {
+				doorwayYOffset = -location.getY();
 				final EnumFacing quadrant = getQuadrant(location, getSize().getZ());
 				if (quadrant == null) {
 					Logger.warning("    It looks like a structure has an doorway placed on a diagonal. This is not supported, location %s", location);
@@ -78,7 +87,20 @@ public class NxNTemplate extends Template
 				}
 			} else if (dataValue.startsWith("not_spawnable")){
 				spawnable = false;
+			} else if (dataValue.startsWith("y_offset:")) {
+				yOffset = Integer.getInteger(dataValue.substring("y_offset:".length()).trim());
+				setYOffsetFromDoorway = false;
 			}
+		}
+
+		if (setYOffsetFromDoorway) {
+
+			this.yOffset = doorwayYOffset;
+			Logger.info("    yOffset has been set to %d because of doorways (or lack there of)", this.yOffset);
+		}
+		else {
+			this.yOffset = yOffset;
+			Logger.info("    yOffset has been set to %d because of an explicit y_offset data block", this.yOffset);
 		}
 	}
 
@@ -102,11 +124,6 @@ public class NxNTemplate extends Template
 		return null;
 	}
 
-
-	public void setYOffset(int offset) {
-		yOffset = offset;
-	}
-
 	public void addEntrance(EnumFacing direction) {
 		openEntrances[direction.getHorizontalIndex()] = true;
 		characteristics = EntranceHelper.calculateCharacteristics(openEntrances);
@@ -115,5 +132,10 @@ public class NxNTemplate extends Template
 	public TemplateCharacteristics getCharacteristics()
 	{
 		return characteristics;
+	}
+
+	public ResourceLocation getResourceLocation()
+	{
+		return resourceLocation;
 	}
 }

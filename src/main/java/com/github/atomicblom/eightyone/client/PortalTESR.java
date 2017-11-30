@@ -108,12 +108,12 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		final BufferBuilder bufferbuilder = new ReusableBufferBuilder(2097152);
 		bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
 
-		float minX = -5;
+		float minX = -4;
 		float maxX = 5;
-		float minZ = -5;
+		float minZ = -4;
 		float maxZ = 5;
-		float minY = 0;
-		float maxY = 5;
+		float minY = -2;
+		float maxY = 4;
 
 		final float uA = 0 / 4f * 16;
 		final float uB = 1 / 4f * 16;

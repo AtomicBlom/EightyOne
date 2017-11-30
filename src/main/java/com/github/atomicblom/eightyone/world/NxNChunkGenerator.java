@@ -12,8 +12,10 @@ import com.google.common.collect.Lists;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -99,8 +101,9 @@ public class NxNChunkGenerator implements IChunkGenerator
 				final Room room = getRoomAt(posX + x, posZ + z);
 				if (!room.isPresent()) continue;
 
-				final RoomTemplate template;
-				template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
+				//final RoomTemplate template;
+				//template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
+				final RoomTemplate template = room.getTemplate();
 				if (template != null && template.getTemplate().isCustomRoom()) continue;
 
 				if (room.contains(posX + x, posZ + z))
@@ -242,16 +245,38 @@ public class NxNChunkGenerator implements IChunkGenerator
 					}
 				}
 
-				final RoomTemplate template;
-				template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
+				final RoomTemplate template = room.getTemplate();
+				//template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
 
 				if (template != null)
 				{
+					final BlockPos blockPos = new BlockPos(room.getX(), BASE_HEIGHT, room.getZ());
 					template.addBlocksToWorldChunk(
 							world,
-							new BlockPos(room.getX(), BASE_HEIGHT, room.getZ()),
+							blockPos,
 							placementSettings);
+
+					final BlockPos sheepPos = blockPos.add(4, template.getTemplate().getHeight(), 4);
+					final List<EntitySheep> entitiesWithinAABB = world.getEntitiesWithinAABB(EntitySheep.class, new AxisAlignedBB(sheepPos));
+					if (entitiesWithinAABB.isEmpty())
+					{
+						//Uncomment this to spawn sheep with labels at a specific point for debugging purposes
+
+						final BlockPos blockpos = sheepPos;
+						final EntitySheep sheep = new EntitySheep(world);
+						sheep.setCustomNameTag(template.getTemplate().getResourceLocation().toString());
+						sheep.setNoAI(true);
+						sheep.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0, 0);
+						sheep.setEntityInvulnerable(true);
+						sheep.setInvisible(true);
+						sheep.setAlwaysRenderNameTag(true);
+						sheep.setSilent(true);
+						sheep.setNoGravity(true);
+						world.spawnEntity(sheep);
+					}
 				}
+
+
 			}
 		}
 
@@ -266,7 +291,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 			final int nextChunkZ = chunkCornerZ + 16;
 			if (pos.getZ() >= chunkCornerZ && pos.getZ() < nextChunkZ)
 			{
-				world.setBlockState(pos, blockState);
+				world.setBlockState(pos, blockState, 16 | 2);
 			}
 		}
 	}
@@ -384,15 +409,26 @@ public class NxNChunkGenerator implements IChunkGenerator
 			final int x = key.getX() / 10;
 			final int z = key.getZ() / 10;
 
-			final Room result = new Room(roomId, key.getX(), key.getZ(), 9, 9, noiseGen.getValue(x, z));
-			result.setPresent(isRoomPresent(x, z));
-			result.setDoorwayPresent(EnumFacing.SOUTH, isRoomPresent(x, z + 1));
-			result.setDoorwayPresent(EnumFacing.NORTH, isRoomPresent(x, z - 1));
-			result.setDoorwayPresent(EnumFacing.EAST, isRoomPresent(x + 1, z));
-			result.setDoorwayPresent(EnumFacing.WEST, isRoomPresent(x - 1, z));
+			final Room room = new Room(roomId, key.getX(), key.getZ(), 9, 9, noiseGen.getValue(x, z));
+			final boolean roomPresent = isRoomPresent(x, z);
+			room.setPresent(roomPresent);
+			room.setDoorwayPresent(EnumFacing.SOUTH, isRoomPresent(x, z + 1));
+			room.setDoorwayPresent(EnumFacing.NORTH, isRoomPresent(x, z - 1));
+			room.setDoorwayPresent(EnumFacing.EAST, isRoomPresent(x + 1, z));
+			room.setDoorwayPresent(EnumFacing.WEST, isRoomPresent(x - 1, z));
 
+			if (roomPresent)
+			{
+				final RoomTemplate roomTemplate;
+				roomTemplate = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
+				if (roomTemplate == null) {
+					room.setPresent(false);
+				} else {
+					room.setTemplate(roomTemplate);
+				}
+			}
 			roomId++;
-			return result;
+			return room;
 		}
 
 		public boolean isRoomPresent(int x, int z) {

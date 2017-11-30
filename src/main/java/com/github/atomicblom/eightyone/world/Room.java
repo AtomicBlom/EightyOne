@@ -2,8 +2,8 @@ package com.github.atomicblom.eightyone.world;
 
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
+import com.github.atomicblom.eightyone.world.structure.RoomTemplate;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
 
 public class Room
 {
@@ -13,7 +13,7 @@ public class Room
 	private final int width;
 	private final int length;
 	private final double templateChance;
-	private ResourceLocation templateName;
+	private RoomTemplate templateName;
 	private boolean present;
 	private boolean[] doorways = new boolean[EnumFacing.HORIZONTALS.length];
 
@@ -74,12 +74,12 @@ public class Room
 		return templateChance;
 	}
 
-	public void setTemplate(ResourceLocation templateName) {
+	public void setTemplate(RoomTemplate roomTemplate) {
 
-		this.templateName = templateName;
+		this.templateName = roomTemplate;
 	}
 
-	public ResourceLocation getTemplate() {
+	public RoomTemplate getTemplate() {
 		return this.templateName;
 	}
 
