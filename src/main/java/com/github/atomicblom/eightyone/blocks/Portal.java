@@ -39,7 +39,7 @@ public class Portal extends Block implements ITileEntityProvider
 		CheckValidStructure(worldIn, pos);
 	}
 
-	int[][] cornerOffsets = {
+	private int[][] cornerOffsets = {
 			{-4, 0, -4},
 			{4, 0, -4},
 			{-4, 0, 4},
@@ -167,7 +167,6 @@ public class Portal extends Block implements ITileEntityProvider
 					BlockPos blockpos1 = worldserver1.getTopSolidOrLiquidBlock(worldserver1.getSpawnPoint());
 					entity.moveToBlockPosAndAngles(blockpos1, entity.rotationYaw, entity.rotationPitch);
 				} else {
-					// TF - inline moveToBlockPosAndAngles without +0.5 offsets, since teleporter already took care of it
 					entity.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), entity.rotationYaw, entity.rotationPitch);
 				}
 
@@ -306,6 +305,7 @@ public class Portal extends Block implements ITileEntityProvider
 	}
 
 	@Override
+	@Deprecated
 	public EnumBlockRenderType getRenderType(IBlockState state)
 	{
 		return EnumBlockRenderType.ENTITYBLOCK_ANIMATED;
@@ -319,18 +319,21 @@ public class Portal extends Block implements ITileEntityProvider
 	}
 
 	@Override
+	@Deprecated
 	public boolean isOpaqueCube(IBlockState state)
 	{
 		return false;
 	}
 
 	@Override
+	@Deprecated
 	public boolean isFullCube(IBlockState state)
 	{
 		return false;
 	}
 
 	@Override
+	@Deprecated
 	public boolean isFullBlock(IBlockState state)
 	{
 		return false;
