@@ -5,17 +5,21 @@ import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
@@ -23,10 +27,12 @@ import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class DungeonBlock extends Block implements ITileEntityProvider
 {
 	public static final UnlistedPropertyCopiedBlock COPIEDBLOCK = new UnlistedPropertyCopiedBlock();
+	public static final PropertyBool SOURCEIMAGE = PropertyBool.create("is_lock_model");
 
 	public DungeonBlock()
 	{
@@ -38,11 +44,12 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 		setUnlocalizedName("bedrock");
 		disableStats();
 		setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
+		setDefaultState(getDefaultState().withProperty(SOURCEIMAGE, false));
 	}
 
 	@Override
 	protected BlockStateContainer createBlockState() {
-		final IProperty [] listedProperties = new IProperty[0]; // no listed properties
+		final IProperty [] listedProperties = {SOURCEIMAGE}; // no listed properties
 		final IUnlistedProperty [] unlistedProperties = {COPIEDBLOCK};
 		return new ExtendedBlockState(this, listedProperties, unlistedProperties);
 	}
@@ -109,6 +116,36 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 		if (te instanceof IPaintableTileEntity) {
 			((IPaintableTileEntity) te).setPaintSource(paintSource);
 		}
+	}
+
+	@Override
+	public IBlockState getStateFromMeta(int meta)
+	{
+		return getDefaultState();
+	}
+
+	@Override
+	public int getMetaFromState(IBlockState state)
+	{
+		return 0;
+	}
+
+	@Override
+	public void addInformation(ItemStack stack, @Nullable World player, List<String> tooltip, ITooltipFlag advanced)
+	{
+		final IBlockState sourceBlock = PainterUtil2.getSourceBlock(stack);
+		if (sourceBlock == null) {
+			tooltip.add("Empty");
+		} else {
+			final Block block = sourceBlock.getBlock();
+			final int metaFromState = block.getMetaFromState(sourceBlock);
+
+			Item i = Item.getItemFromBlock(block);
+
+
+			tooltip.add("Contains: " + I18n.translateToLocal(block.getUnlocalizedName() + ".name"));
+		}
+
 	}
 
 	@Nonnull

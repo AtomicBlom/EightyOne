@@ -1,0 +1,15 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "transform": "forge:default-block",
+    "model": "eightyone:portal",
+    "textures": {
+      "all": "minecraft:blocks/cobblestone_mossy",
+      "particle": "minecraft:blocks/cobblestone_mossy"
+    }
+  },
+  "variants": {
+    "normal":[{}],
+    "inventory":[{}]
+  }
+}

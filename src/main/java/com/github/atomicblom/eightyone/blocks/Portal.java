@@ -55,7 +55,7 @@ public class Portal extends Block implements ITileEntityProvider
 	{
 		if (CheckValidStructure(worldIn, pos)) return;
 
-		pos = pos.down(2);
+		/*pos = pos.down(2);
 
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
@@ -66,6 +66,7 @@ public class Portal extends Block implements ITileEntityProvider
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() - 4 + 0.5, 0, 0.01, 0);
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() - 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
 		worldIn.spawnParticle(EnumParticleTypes.PORTAL, pos.getX() + 4 + 0.5, pos.getY() + 5 + 1, pos.getZ() + 4 + 0.5, 0, 0.01, 0);
+		*/
 	}
 
 	@Override
@@ -188,11 +189,11 @@ public class Portal extends Block implements ITileEntityProvider
 	private boolean CheckValidStructure(World worldIn, BlockPos pos)
 	{
 		Block checkBlock;
-		pos = pos.down();
-		checkBlock = worldIn.getBlockState(pos).getBlock();
-		if (checkBlock == Blocks.AIR) { return false; }
+		//pos = pos.down();
+		//checkBlock = worldIn.getBlockState(pos).getBlock();
+		//if (checkBlock == Blocks.AIR) { return false; }
 
-		pos = pos.down();
+		pos = pos.down(2);
 
 		Block cornerBlock = null;
 		Block topRowBlock = null;

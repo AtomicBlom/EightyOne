@@ -1,5 +1,6 @@
 package com.github.atomicblom.eightyone.client;
 
+import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.blocks.DungeonBlock;
 import com.google.common.collect.Lists;
 import net.minecraft.block.state.IBlockState;
@@ -42,6 +43,9 @@ public class DungeonBakedModel implements IBakedModel {
 	public static final ModelResourceLocation variantTag
 			= new ModelResourceLocation("eightyone:dungeon_block", "normal");
 
+	public static final ModelResourceLocation lockTag
+			= new ModelResourceLocation("eightyone:dungeon_block", "lock");
+
 
 	List<BakedQuad> noquads = new ArrayList<>(0);
 
@@ -61,12 +65,12 @@ public class DungeonBakedModel implements IBakedModel {
 			IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
 			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(DungeonBlock.COPIEDBLOCK);
 
-			if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK)
+			if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK && copiedBlockIBlockState != null)
 			{
-
 				if (copiedBlockIBlockState.getBlock().canRenderInLayer(copiedBlockIBlockState, renderLayer))
 				{
-					quads = handleBlockState(iBlockState).getQuads(copiedBlockIBlockState, side, rand);
+					IBakedModel copiedBlockModel = blockModelShapes.getModelForState(copiedBlockIBlockState);
+					quads = copiedBlockModel.getQuads(copiedBlockIBlockState, side, rand);
 				}
 			}
 		}
@@ -75,7 +79,8 @@ public class DungeonBakedModel implements IBakedModel {
 			if (quads.isEmpty()) {
 				quads = Lists.newArrayList();
 			}
-			final IBakedModel modelForState = blockModelShapes.getModelForState(iBlockState);
+			final IBlockState state = BlockLibrary.dungeon_block.getDefaultState().withProperty(DungeonBlock.SOURCEIMAGE, true);
+			final IBakedModel modelForState = blockModelShapes.getModelForState(state);
 			quads.addAll(modelForState.getQuads(iBlockState, side, rand));
 		}
 
@@ -84,7 +89,6 @@ public class DungeonBakedModel implements IBakedModel {
 
 	// This method is used to create a suitable IBakedModel based on the IBlockState of the block being rendered.
 	// If IBlockState is an instance of IExtendedBlockState, you can use it to pass in any information you want.
-
 	private IBakedModel handleBlockState(@Nullable IBlockState iBlockState)
 	{
 		Minecraft mc = Minecraft.getMinecraft();
@@ -146,6 +150,7 @@ public class DungeonBakedModel implements IBakedModel {
 	}
 
 	@Override
+	@Deprecated
 	public ItemCameraTransforms getItemCameraTransforms()
 	{
 		return modelWhenNotCamouflaged.getItemCameraTransforms();
@@ -159,25 +164,8 @@ public class DungeonBakedModel implements IBakedModel {
 	 */
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(ItemCameraTransforms.TransformType cameraTransformType) {
-//    if (modelWhenNotCamouflaged instanceof IPerspectiveAwareModel) {
 		Matrix4f matrix4f = modelWhenNotCamouflaged.handlePerspective(cameraTransformType).getRight();
 		return Pair.of(this, matrix4f);
-//    } else {
-//      // If the parent model isn't an IPerspectiveAware, we'll need to generate the correct matrix ourselves using the
-//      //  ItemCameraTransforms.
-//
-//      ItemCameraTransforms itemCameraTransforms = modelWhenNotCamouflaged.getItemCameraTransforms();
-//      ItemTransformVec3f itemTransformVec3f = itemCameraTransforms.getTransform(cameraTransformType);
-//      TRSRTransformation tr = new TRSRTransformation(itemTransformVec3f);
-//      Matrix4f mat = null;
-//      if (tr != null) { // && tr != TRSRTransformation.identity()) {
-//        mat = tr.getMatrix();
-//      }
-//      // The TRSRTransformation for vanilla items have blockCenterToCorner() applied, however handlePerspective
-//      //  reverses it back again with blockCornerToCenter().  So we don't need to apply it here.
-//
-//      return Pair.of(this, mat);
-//    }
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.github.atomicblom.eightyone;
 
+import com.github.atomicblom.eightyone.blocks.DungeonBlock;
 import com.github.atomicblom.eightyone.blocks.PortalTileEntity;
 import com.github.atomicblom.eightyone.client.DungeonBakedModel;
 import com.github.atomicblom.eightyone.client.PortalTESR;
@@ -29,28 +30,21 @@ public class ClientRegistrationEvents
 
 	@SubscribeEvent
 	public static void onRenderingReady(ModelRegistryEvent evt) {
-		// We need to tell Forge how to map our BlockCamouflage's IBlockState to a ModelResourceLocation.
-		// For example, the BlockStone granite variant has a BlockStateMap entry that looks like
-		//   "stone[variant=granite]" (iBlockState)  -> "minecraft:granite#normal" (ModelResourceLocation)
-		// For the camouflage block, we ignore the iBlockState completely and always return the same ModelResourceLocation,
-		//   which is done using the anonymous class below.
 		StateMapperBase ignoreState = new StateMapperBase() {
 			@Override
 			protected ModelResourceLocation getModelResourceLocation(IBlockState iBlockState) {
+				if (iBlockState.getValue(DungeonBlock.SOURCEIMAGE)) {
+					return DungeonBakedModel.lockTag;
+				}
 				return DungeonBakedModel.variantTag;
 			}
 		};
 		ModelLoader.setCustomStateMapper(BlockLibrary.dungeon_block, ignoreState);
-		// NB If your block has multiple variants and you want vanilla to load a model for each variant, you don't need a
-		//   custom state mapper.
-		// You can see examples of vanilla custom state mappers in BlockModelShapes.registerAllBlocks()
 
-		// This step is necessary in order to make your block render properly when it is an item (i.e. in the inventory
-		//   or in your hand or thrown on the ground).
-		// It must be done on client only, and must be done after the block has been created in Common.preinit().
-		ModelResourceLocation itemModelResourceLocation = new ModelResourceLocation("eightyone:dungeon_block", "inventory");
 		final int DEFAULT_ITEM_SUBTYPE = 0;
-		ModelLoader.setCustomModelResourceLocation(ItemLibrary.dungeon_block, DEFAULT_ITEM_SUBTYPE, itemModelResourceLocation);
+
+		ModelLoader.setCustomModelResourceLocation(ItemLibrary.dungeon_block, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.DUNGEON_BLOCK, "inventory"));
+		ModelLoader.setCustomModelResourceLocation(ItemLibrary.portal, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.PORTAL, "inventory"));
 	}
 
 	// Called after all the other baked block models have been added to the modelRegistry
@@ -80,5 +74,6 @@ public class ClientRegistrationEvents
 	public static void onTextureStitch(TextureStitchEvent.Pre event) {
 		final TextureMap map = event.getMap();
 		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal3"));
+		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame"));
 	}
 }
