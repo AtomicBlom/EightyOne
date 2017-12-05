@@ -31,9 +31,9 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		if (portalArtifact == null) {
 			portalArtifact = createArtifactBuffer();
 		}
-		//if (portalFrame == null) {
+		if (portalFrame == null) {
 			portalFrame = createFrameBuffer();
-		//}
+		}
 
 		WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
 
