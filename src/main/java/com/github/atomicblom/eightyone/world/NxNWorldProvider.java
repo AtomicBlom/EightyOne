@@ -31,4 +31,9 @@ public class NxNWorldProvider extends net.minecraft.world.WorldProvider
 	{
 		return _dimensionType;
 	}
+
+	@Override
+	public double getMovementFactor() {
+		return 9D;
+	}
 }

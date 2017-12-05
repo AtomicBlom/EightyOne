@@ -43,7 +43,9 @@ public class EightyOneTeleporter extends Teleporter {
 
     @Override
     public boolean makePortal(Entity entityIn) {
-        final WorldProvider provider = entityIn.getEntityWorld().provider;
+		Logger.info("makePortal: %s", entityIn);
+
+		final WorldProvider provider = entityIn.getEntityWorld().provider;
         BlockPos position = entityIn.getPosition().down();
         if (provider instanceof NxNWorldProvider) {
             final NxNChunkGenerator chunkGenerator = (NxNChunkGenerator) provider.createChunkGenerator();
@@ -51,21 +53,31 @@ public class EightyOneTeleporter extends Teleporter {
             final BlockPos startPos = new BlockPos(startingRoom.getX(), chunkGenerator.getFloorHeight(), startingRoom.getZ());
             for (final BlockPos pos : new SpiralIterable(startPos, 10) ) {
                 final Room spawnRoom = chunkGenerator.getRoomAt(pos.getX(), pos.getZ());
+                Logger.info("makePortal: Checking if room present at %d,%d", spawnRoom.getX(), spawnRoom.getZ());
                 if (spawnRoom.isPresent()) {
-                    makePortal(entityIn.world, new BlockPos(pos), false);
+					int height = entityIn.world.getHeight(pos.getX(), pos.getZ());
+					position = new BlockPos(pos.getX(), height, pos.getZ());
+
+                    renderPortalToWorld(entityIn.world, position, false);
                     return true;
                 }
             }
         } else {
-            position = position.add(1, 0, 1);
-            makePortal(entityIn.world, position, true);
+        	Logger.info("makePortal: Creating portal at player location");
+			int height = entityIn.world.getHeight(position.getX() + 1, position.getZ() + 1);
+            position = new BlockPos(position.getX() + 1, height, position.getZ() + 1);
+
+            renderPortalToWorld(entityIn.world, position, true);
             return true;
         }
         return false;
     }
 
-    private void makePortal(World world, BlockPos blockPos, boolean fillUnderneath) {
-        final NxNTemplate spawn = TemplateManager.getTemplateByName(new ResourceLocation(Reference.MOD_ID, "portal"));
+    private void renderPortalToWorld(World world, BlockPos blockPos, boolean fillUnderneath) {
+		Logger.info("renderPortalToWorld: %s fillUnderneath: %s", blockPos, fillUnderneath);
+		ResourceLocation templateName = fillUnderneath ? new ResourceLocation(Reference.MOD_ID, "portal_overworld")
+				:new ResourceLocation(Reference.MOD_ID, "portal");
+		final NxNTemplate spawn = TemplateManager.getTemplateByName(templateName);
         final PlacementSettings placementSettings = new PlacementSettings();
         final Template template = spawn;
         template.addBlocksToWorld(world, blockPos, placementSettings);
@@ -91,16 +103,20 @@ public class EightyOneTeleporter extends Teleporter {
 	 */
 	public void placeInPortal(Entity entityIn, float rotationYaw)
 	{
+		Logger.info("placeInPortal: %s", entityIn);
 		if (world.provider.getDimensionType().getId() != 1)
 		{
+			Logger.info("placeInPortal: world is not the overworld");
 			if (!placeInExistingPortal(entityIn, rotationYaw))
 			{
+				Logger.info("placeInPortal: placeInExistingPortal failed, attempting to make a new portal");
 				makePortal(entityIn);
 				placeInExistingPortal(entityIn, rotationYaw);
 			}
 		}
 		else
 		{
+			Logger.info("placeInPortal: world is the overworld");
 			final int i = MathHelper.floor(entityIn.posX);
 			final int j = MathHelper.floor(entityIn.posY) - 1;
 			final int k = MathHelper.floor(entityIn.posZ);
@@ -131,6 +147,7 @@ public class EightyOneTeleporter extends Teleporter {
 
 	public boolean placeInExistingPortal(Entity entityIn, float rotationYaw)
 	{
+		Logger.info("placeInExistingPortal: %s", entityIn);
 		final int scanDistance = 128;
 		double currentDistance = -1.0D;
 		final int entityX = MathHelper.floor(entityIn.posX);
@@ -142,6 +159,7 @@ public class EightyOneTeleporter extends Teleporter {
 		if (destinationCoordinateCache.containsKey(chunkId))
 		{
 			final PortalPosition portalPosition = destinationCoordinateCache.get(chunkId);
+			Logger.info("Portal Position identified from cache %s", portalPosition);
 			currentDistance = 0.0D;
 			blockpos = portalPosition;
 			portalPosition.lastUpdateTime = world.getTotalWorldTime();
@@ -150,6 +168,8 @@ public class EightyOneTeleporter extends Teleporter {
 		else
 		{
 			final BlockPos entityPosition = new BlockPos(entityIn);
+
+			Logger.info("Scanning for portal block at %s +/-%d", entityPosition, scanDistance);
 
 			for (int scanX = -scanDistance; scanX <= scanDistance; ++scanX)
 			{
@@ -163,10 +183,10 @@ public class EightyOneTeleporter extends Teleporter {
 
 						if (world.getBlockState(selectedPos).getBlock() == BlockLibrary.portal)
 						{
-							for (scanPos = selectedPos.down(); world.getBlockState(scanPos).getBlock() == BlockLibrary.portal; scanPos = scanPos.down())
-							{
-								selectedPos = scanPos;
-							}
+//							for (scanPos = selectedPos.down(); world.getBlockState(scanPos).getBlock() == BlockLibrary.portal; scanPos = scanPos.down())
+//							{
+//								selectedPos = scanPos;
+//							}
 
 							final double distanceToEntity = selectedPos.distanceSq(entityPosition);
 
@@ -181,6 +201,8 @@ public class EightyOneTeleporter extends Teleporter {
 			}
 		}
 
+		Logger.info("Distance to portal calculated as %f", currentDistance);
+
 		if (currentDistance >= 0.0D)
 		{
 			if (flag)
@@ -188,67 +210,19 @@ public class EightyOneTeleporter extends Teleporter {
 				destinationCoordinateCache.put(chunkId, new PortalPosition(blockpos, world.getTotalWorldTime()));
 			}
 
-			double d5 = blockpos.getX() + 0.5D;
-			double d7 = blockpos.getZ() + 0.5D;
-			double d6 = blockpos.getY();
-			/*final PatternHelper patternHelper = Blocks.PORTAL.createPatternHelper(world, blockpos);
-			final boolean flag1 = patternHelper.getForwards().rotateY().getAxisDirection() == AxisDirection.NEGATIVE;
-			double d2 = patternHelper.getForwards().getAxis() == Axis.X ? patternHelper.getFrontTopLeft().getZ() : patternHelper.getFrontTopLeft().getX();
-			final double d6 = (patternHelper.getFrontTopLeft().getY() + 1) - entityIn.getLastPortalVec().y * patternHelper.getHeight();
+			double newX = blockpos.getX() + 0.5D;
+			double newZ = blockpos.getZ() + 0.5D;
+			double newY = blockpos.getY();
 
-			if (flag1)
-			{
-				++d2;
-			}
+			Logger.info("Player location set to %s", blockpos);
 
-			if (patternHelper.getForwards().getAxis() == Axis.X)
-			{
-				d7 = d2 + (1.0D - entityIn.getLastPortalVec().x) * patternHelper.getWidth() * patternHelper.getForwards().rotateY().getAxisDirection().getOffset();
-			}
-			else
-			{
-				d5 = d2 + (1.0D - entityIn.getLastPortalVec().x) * patternHelper.getWidth() * patternHelper.getForwards().rotateY().getAxisDirection().getOffset();
-			}
-
-			float f = 0.0F;
-			float f1 = 0.0F;
-			float f2 = 0.0F;
-			float f3 = 0.0F;
-
-			if (patternHelper.getForwards().getOpposite() == entityIn.getTeleportDirection())
-			{
-				f = 1.0F;
-				f1 = 1.0F;
-			}
-			else if (patternHelper.getForwards().getOpposite() == entityIn.getTeleportDirection().getOpposite())
-			{
-				f = -1.0F;
-				f1 = -1.0F;
-			}
-			else if (patternHelper.getForwards().getOpposite() == entityIn.getTeleportDirection().rotateY())
-			{
-				f2 = 1.0F;
-				f3 = -1.0F;
-			}
-			else
-			{
-				f2 = -1.0F;
-				f3 = 1.0F;
-			}
-
-			final double d3 = entityIn.motionX;
-			final double d4 = entityIn.motionZ;
-			entityIn.motionX = d3 * f + d4 * f3;
-			entityIn.motionZ = d3 * f2 + d4 * f1;
-			entityIn.rotationYaw = rotationYaw - (entityIn.getTeleportDirection().getOpposite().getHorizontalIndex() * 90) + (patternHelper.getForwards().getHorizontalIndex() * 90);
-			*/
 			if (entityIn instanceof EntityPlayerMP)
 			{
-				((EntityPlayerMP)entityIn).connection.setPlayerLocation(d5, d6, d7, entityIn.rotationYaw, entityIn.rotationPitch);
+				((EntityPlayerMP)entityIn).connection.setPlayerLocation(newX, newY, newZ, entityIn.rotationYaw, entityIn.rotationPitch);
 			}
 			else
 			{
-				entityIn.setLocationAndAngles(d5, d6, d7, entityIn.rotationYaw, entityIn.rotationPitch);
+				entityIn.setLocationAndAngles(newX, newY, newZ, entityIn.rotationYaw, entityIn.rotationPitch);
 			}
 
 			return true;

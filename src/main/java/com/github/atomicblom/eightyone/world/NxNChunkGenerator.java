@@ -256,24 +256,24 @@ public class NxNChunkGenerator implements IChunkGenerator
 							blockPos,
 							placementSettings);
 
-					final BlockPos sheepPos = blockPos.add(4, template.getTemplate().getHeight(), 4);
-					final List<EntitySheep> entitiesWithinAABB = world.getEntitiesWithinAABB(EntitySheep.class, new AxisAlignedBB(sheepPos));
-					if (entitiesWithinAABB.isEmpty())
-					{
-						//Uncomment this to spawn sheep with labels at a specific point for debugging purposes
-
-						final BlockPos blockpos = sheepPos;
-						final EntitySheep sheep = new EntitySheep(world);
-						sheep.setCustomNameTag(template.getTemplate().getResourceLocation().toString());
-						sheep.setNoAI(true);
-						sheep.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0, 0);
-						sheep.setEntityInvulnerable(true);
-						sheep.setInvisible(true);
-						sheep.setAlwaysRenderNameTag(true);
-						sheep.setSilent(true);
-						sheep.setNoGravity(true);
-						world.spawnEntity(sheep);
-					}
+//					final BlockPos sheepPos = blockPos.add(4, template.getTemplate().getHeight(), 4);
+//					final List<EntitySheep> entitiesWithinAABB = world.getEntitiesWithinAABB(EntitySheep.class, new AxisAlignedBB(sheepPos));
+//					if (entitiesWithinAABB.isEmpty())
+//					{
+//						//Uncomment this to spawn sheep with labels at a specific point for debugging purposes
+//
+//						final BlockPos blockpos = sheepPos;
+//						final EntitySheep sheep = new EntitySheep(world);
+//						sheep.setCustomNameTag(template.getTemplate().getResourceLocation().toString());
+//						sheep.setNoAI(true);
+//						sheep.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0, 0);
+//						sheep.setEntityInvulnerable(true);
+//						sheep.setInvisible(true);
+//						sheep.setAlwaysRenderNameTag(true);
+//						sheep.setSilent(true);
+//						sheep.setNoGravity(true);
+//						world.spawnEntity(sheep);
+//					}
 				}
 			}
 		}

@@ -116,56 +116,55 @@ public class Portal extends Block implements ITileEntityProvider
 	 * `this` -> `toTeleport`
 	 * return value Entity -> void
 	 */
-	@SuppressWarnings("unused")
-	private void changeDimension(Entity toTeleport, int dimensionIn) {
-		if (!toTeleport.world.isRemote && !toTeleport.isDead) {
-			if (!ForgeHooks.onTravelToDimension(toTeleport, dimensionIn)) return;
-			toTeleport.world.profiler.startSection("changeDimension");
-			MinecraftServer minecraftserver = toTeleport.getServer();
-			int i = toTeleport.dimension;
-			WorldServer worldserver = minecraftserver.getWorld(i);
-			WorldServer worldserver1 = minecraftserver.getWorld(dimensionIn);
-			toTeleport.dimension = dimensionIn;
+	//@SuppressWarnings("unused")
+	private void changeDimension(Entity entityToTeleport, int newDimensionId) {
+		if (!entityToTeleport.world.isRemote && !entityToTeleport.isDead) {
+			if (!ForgeHooks.onTravelToDimension(entityToTeleport, newDimensionId)) return;
+			entityToTeleport.world.profiler.startSection("changeDimension");
+			MinecraftServer minecraftserver = entityToTeleport.getServer();
+			int currentDimensionId = entityToTeleport.dimension;
+			WorldServer currentDimensionWorldServer = minecraftserver.getWorld(currentDimensionId);
+			WorldServer newDimensionWorldServer = minecraftserver.getWorld(newDimensionId);
+			entityToTeleport.dimension = newDimensionId;
 
-			if (i == 1 && dimensionIn == 1) {
-				worldserver1 = minecraftserver.getWorld(0);
-				toTeleport.dimension = 0;
+			if (currentDimensionId == 1 && newDimensionId == 1) {
+				newDimensionWorldServer = minecraftserver.getWorld(0);
+				entityToTeleport.dimension = 0;
 			}
 
-			toTeleport.world.removeEntity(toTeleport);
-			toTeleport.isDead = false;
-			toTeleport.world.profiler.startSection("reposition");
+			entityToTeleport.world.removeEntity(entityToTeleport);
+			entityToTeleport.isDead = false;
+			entityToTeleport.world.profiler.startSection("reposition");
 			BlockPos blockpos;
 
-			if (dimensionIn == 1) {
-				blockpos = worldserver1.getSpawnCoordinate();
+			if (newDimensionId == 1) {
+				blockpos = newDimensionWorldServer.getSpawnCoordinate();
 			} else {
-				double d0 = toTeleport.posX;
-				double d1 = toTeleport.posZ;
-				double d2 = 8.0D;
+				double posX = entityToTeleport.posX;
+				double posZ = entityToTeleport.posZ;
 
 				// Tf - remove 8x scaling for nether
-				d0 = MathHelper.clamp(d0, worldserver1.getWorldBorder().minX() + 16.0D, worldserver1.getWorldBorder().maxX() - 16.0D);
-				d1 = MathHelper.clamp(d1, worldserver1.getWorldBorder().minZ() + 16.0D, worldserver1.getWorldBorder().maxZ() - 16.0D);
+				posX = MathHelper.clamp(posX, newDimensionWorldServer.getWorldBorder().minX() + 16.0D, newDimensionWorldServer.getWorldBorder().maxX() - 16.0D);
+				posZ = MathHelper.clamp(posZ, newDimensionWorldServer.getWorldBorder().minZ() + 16.0D, newDimensionWorldServer.getWorldBorder().maxZ() - 16.0D);
 
-				d0 = MathHelper.clamp((int) d0, -29999872, 29999872);
-				d1 = MathHelper.clamp((int) d1, -29999872, 29999872);
-				float f = toTeleport.rotationYaw;
-				toTeleport.setLocationAndAngles(d0, toTeleport.posY, d1, 90.0F, 0.0F);
-				Teleporter teleporter = EightyOneTeleporter.getTeleporterForDim(minecraftserver, dimensionIn); // TF - custom teleporter
-				teleporter.placeInExistingPortal(toTeleport, f);
-				blockpos = new BlockPos(toTeleport);
+				posX = MathHelper.clamp((int) posX, -29999872, 29999872);
+				posZ = MathHelper.clamp((int) posZ, -29999872, 29999872);
+				float f = entityToTeleport.rotationYaw;
+				entityToTeleport.setLocationAndAngles(posX, entityToTeleport.posY, posZ, 90.0F, 0.0F);
+				Teleporter teleporter = EightyOneTeleporter.getTeleporterForDim(minecraftserver, newDimensionId); // TF - custom teleporter
+				teleporter.placeInExistingPortal(entityToTeleport, f);
+				blockpos = new BlockPos(entityToTeleport);
 			}
 
-			worldserver.updateEntityWithOptionalForce(toTeleport, false);
-			toTeleport.world.profiler.endStartSection("reloading");
-			Entity entity = EntityList.newEntity(toTeleport.getClass(), worldserver1);
+			currentDimensionWorldServer.updateEntityWithOptionalForce(entityToTeleport, false);
+			entityToTeleport.world.profiler.endStartSection("reloading");
+			Entity entity = EntityList.newEntity(entityToTeleport.getClass(), newDimensionWorldServer);
 
 			if (entity != null) {
-				entity.copyDataFromOld(toTeleport);
+				entity.copyDataFromOld(entityToTeleport);
 
-				if (i == 1 && dimensionIn == 1) {
-					BlockPos blockpos1 = worldserver1.getTopSolidOrLiquidBlock(worldserver1.getSpawnPoint());
+				if (currentDimensionId == 1 && newDimensionId == 1) {
+					BlockPos blockpos1 = newDimensionWorldServer.getTopSolidOrLiquidBlock(newDimensionWorldServer.getSpawnPoint());
 					entity.moveToBlockPosAndAngles(blockpos1, entity.rotationYaw, entity.rotationPitch);
 				} else {
 					entity.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), entity.rotationYaw, entity.rotationPitch);
@@ -173,16 +172,16 @@ public class Portal extends Block implements ITileEntityProvider
 
 				boolean flag = entity.forceSpawn;
 				entity.forceSpawn = true;
-				worldserver1.spawnEntity(entity);
+				newDimensionWorldServer.spawnEntity(entity);
 				entity.forceSpawn = flag;
-				worldserver1.updateEntityWithOptionalForce(entity, false);
+				newDimensionWorldServer.updateEntityWithOptionalForce(entity, false);
 			}
 
-			toTeleport.isDead = true;
-			toTeleport.world.profiler.endSection();
-			worldserver.resetUpdateEntityTick();
-			worldserver1.resetUpdateEntityTick();
-			toTeleport.world.profiler.endSection();
+			entityToTeleport.isDead = true;
+			entityToTeleport.world.profiler.endSection();
+			currentDimensionWorldServer.resetUpdateEntityTick();
+			newDimensionWorldServer.resetUpdateEntityTick();
+			entityToTeleport.world.profiler.endSection();
 		}
 	}
 

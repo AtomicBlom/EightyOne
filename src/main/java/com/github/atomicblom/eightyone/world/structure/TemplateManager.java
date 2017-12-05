@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResource;
@@ -30,22 +31,26 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public final class TemplateManager
 {
-	private static final LoadingCache<ResourceLocation, NxNTemplate> TemplateCache;
+	//private static final LoadingCache<ResourceLocation, NxNTemplate> TemplateCache;
+	private static final Map<ResourceLocation, NxNTemplate> TemplateCache = new HashMap<>();
 	private static final Pattern PATH_SEPERATOR = Pattern.compile("\\\\");
 
-	static {
-		TemplateCache = CacheBuilder.newBuilder()
-				.expireAfterAccess(10, TimeUnit.MINUTES)
-				.maximumSize(1000)
-				.build(new TemplateLoader());
-	}
+//	static {
+//		TemplateCache = CacheBuilder.newBuilder()
+//				.expireAfterAccess(10, TimeUnit.MINUTES)
+//				.maximumSize(1000)
+//				.build(new TemplateLoader());
+//	}
 
 	//private static Map<ResourceLocation, NxNTemplate> validStructures = Maps.newHashMap();
 	//private static List<ResourceLocation> validStructureNames = Lists.newArrayList();
@@ -82,8 +87,9 @@ public final class TemplateManager
 		final DataFixer dataFixer = minecraft.getDataFixer();
 
 		spawnableStructureNames.clear();
-		TemplateCache.invalidateAll();
-		TemplateCache.cleanUp();
+		//TemplateCache.invalidateAll();
+		//TemplateCache.cleanUp();
+		TemplateCache.clear();
 
 		final List<ModContainer> activeModList = Lists.newArrayList(Loader.instance().getActiveModList());
 		if (readFromConfigDirectory) {
@@ -166,14 +172,14 @@ public final class TemplateManager
 	}
 
 	public static NxNTemplate getTemplateByName(ResourceLocation filename) {
-		try
-		{
+		//try
+		//{
 			return TemplateCache.get(filename);
 
-		} catch (final ExecutionException ignored)
-		{
-			return null;
-		}
+		//} catch (final ExecutionException ignored)
+		//{
+		//	return null;
+		//}
 	}
 
 	public static RoomTemplate getTemplateByChance(TemplateCharacteristics roomCharacteristics, double templateChance)
@@ -188,8 +194,8 @@ public final class TemplateManager
 
 		for (final ResourceLocation structureName : spawnableStructureNames)
 		{
-			try
-			{
+			//try
+			//{
 				final NxNTemplate template = TemplateCache.get(structureName);
 				final TemplateCharacteristics characteristics = template.getCharacteristics();
 
@@ -204,10 +210,10 @@ public final class TemplateManager
 					final RoomTemplate roomTemplate = new RoomTemplate(structureName, template, rotationToApply, Mirror.NONE);
 					validStructures.add(roomTemplate);
 				}
-			} catch (final ExecutionException ignored)
-			{
-				return null;
-			}
+//			} catch (final ExecutionException ignored)
+//			{
+//				return null;
+//			}
 		}
 
 		if (validStructures.isEmpty()) {
@@ -252,31 +258,31 @@ public final class TemplateManager
 		TemplateManager.configurationDirectory = configurationDirectory;
 	}
 
-	private static class TemplateLoader extends CacheLoader<ResourceLocation, NxNTemplate> {
-		@Override
-		public NxNTemplate load(ResourceLocation key) throws Exception
-		{
-			try
-			{
-				final Minecraft minecraft = Minecraft.getMinecraft();
-				final DataFixer dataFixer = minecraft.getDataFixer();
-				final IResourceManager resourceManager = minecraft.getResourceManager();
-
-				final NBTTagCompound nbttagcompound;
-				try (IResource eightyone = resourceManager.getResource(key))//new ResourceLocation(Reference.MOD_ID, "nxnstructures/" +key + ".nbt")))
-				{
-					nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
-				}
-
-				final NxNTemplate template = new NxNTemplate(key);
-				template.read(dataFixer.process(FixTypes.STRUCTURE, nbttagcompound));
-				return template;
-
-			} catch (final IOException ignored) {
-
-			}
-
-			return null;
-		}
-	}
+//	private static class TemplateLoader extends CacheLoader<ResourceLocation, NxNTemplate> {
+//		@Override
+//		public NxNTemplate load(ResourceLocation key) throws Exception
+//		{
+//			try
+//			{
+//				final Minecraft minecraft = Minecraft.getMinecraft();
+//				final DataFixer dataFixer = minecraft.getDataFixer();
+//				final IResourceManager resourceManager = minecraft.getResourceManager();
+//
+//				final NBTTagCompound nbttagcompound;
+//				try (IResource eightyone = resourceManager.getResource(key))//new ResourceLocation(Reference.MOD_ID, "nxnstructures/" +key + ".nbt")))
+//				{
+//					nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
+//				}
+//
+//				final NxNTemplate template = new NxNTemplate(key);
+//				template.read(dataFixer.process(FixTypes.STRUCTURE, nbttagcompound));
+//				return template;
+//
+//			} catch (final IOException ignored) {
+//
+//			}
+//
+//			return null;
+//		}
+//	}
 }
