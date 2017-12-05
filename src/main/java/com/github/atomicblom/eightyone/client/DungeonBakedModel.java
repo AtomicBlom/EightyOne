@@ -46,14 +46,11 @@ public class DungeonBakedModel implements IBakedModel {
 	public static final ModelResourceLocation lockTag
 			= new ModelResourceLocation("eightyone:dungeon_block", "lock");
 
-
-	List<BakedQuad> noquads = new ArrayList<>(0);
-
 	// return a list of the quads making up the model.
 	// We choose the model based on the IBlockstate provided by the caller.
 	public List<BakedQuad> getQuads(@Nullable IBlockState iBlockState, @Nullable EnumFacing side, long rand)
 	{
-		List<BakedQuad> quads = noquads;
+		List<BakedQuad> quads = Lists.newArrayList();
 
 		final BlockRenderLayer renderLayer = MinecraftForgeClient.getRenderLayer();
 		Minecraft mc = Minecraft.getMinecraft();
