@@ -19,7 +19,7 @@ import org.lwjgl.util.vector.Vector4f;
 public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 {
 	String portalTexture = new ResourceLocation(Reference.MOD_ID, "blocks/portal3").toString();
-	String portalTexture_frame = new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame").toString();
+	String portalTexture_frame = new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame2").toString();
 
 	private BufferBuilder portalArtifact;
 	private BufferBuilder portalFrame;
@@ -31,9 +31,9 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		if (portalArtifact == null) {
 			portalArtifact = createArtifactBuffer();
 		}
-		//if (portalFrame == null) {
+		if (portalFrame == null) {
 			portalFrame = createFrameBuffer();
-		//}
+		}
 
 		WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
 
@@ -201,23 +201,52 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 				makeVertex(transform, bufferbuilder, sprite, x + 1, minY + 1, z, 16, 16, normal.x, normal.y, normal.z);
 				makeVertex(transform, bufferbuilder, sprite, x, minY + 1, z, 0, 16, normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, maxY - 1, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, maxY, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z, 16, 0, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite, x + 1, maxY - 1, z, 0, 0, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite, x + 1, maxY, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite, x, maxY, z, 16, 16, normal.x, normal.y, normal.z);
 			}
 
-			for (float y = minY + 1; y < maxY - 1; ++y)
+			for (float y = minY; y < maxY; ++y)
 			{
-				makeVertex(transform, bufferbuilder, sprite, minX, y, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y + 1, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX, y + 1, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y, z,
+						16, 16,
 
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y + 1, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y + 1, z, 0, 16, normal.x, normal.y, normal.z);
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y, z,
+						16, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y + 1, z,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y + 1, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
+
+
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y, z,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y + 1, z,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y + 1, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
+
 			}
 		}
 
@@ -230,27 +259,81 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		{
 			for (float x = minX; x < maxX; ++x)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, minY + 1, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, minY + 1, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, minY, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY + 1, z,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, minY + 1, z,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, minY, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, maxY, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, maxY, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, maxY - 1, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY, z,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, maxY, z,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, maxY - 1, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY - 1, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
 			}
-			for (float y = minY + 1; y < maxY - 1; ++y)
+			for (float y = minY; y < maxY; ++y)
 			{
-				makeVertex(transform, bufferbuilder, sprite, minX, y + 1, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y + 1, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX, y, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y + 1, z,
+						16, 16,
 
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y + 1, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y + 1, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, z, 0, 16, normal.x, normal.y, normal.z);
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y + 1, z,
+						16, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y, z,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
+
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y + 1, z,
+						0, 16,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y + 1, z,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y, z,
+						16, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
 			}
 		}
 
@@ -263,27 +346,81 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		{
 			for (float z = minZ; z < maxZ; ++z)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, minY + 1, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY + 1, z + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY, z + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY + 1, z,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY + 1, z + 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY, z + 1,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, maxY, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY, z + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY, z + 1,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY - 1, z + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY - 1, z,
+						0, 0,
+						normal.x, normal.y, normal.z);
 			}
-			for (float y = minY + 1; y < maxY - 1; ++y)
+			for (float y = minY; y < maxY; ++y)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, minZ, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, minZ + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, minZ,
+						16, 16,
 
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, maxZ - 1, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, maxZ, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ - 1, 0, 16, normal.x, normal.y, normal.z);
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, minZ + 1,
+						16, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ + 1,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
+
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, maxZ - 1,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, maxZ,
+						0, 16,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ,
+						16, 16,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ - 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
 			}
 		}
 
@@ -297,30 +434,79 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		{
 			for (float z = minZ; z < maxZ; ++z)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, minY, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY, z + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY + 1, z + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, minY + 1, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY, z + 1,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY + 1, z + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, minY + 1, z,
+						0, 0,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY - 1, z + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY, z + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, maxY, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY - 1, z,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY - 1, z + 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY, z + 1,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, maxY, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
 			}
-			for (float y = minY + 1; y < maxY - 1; ++y)
+			for (float y = minY; y < maxY; ++y)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, minZ + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, minZ, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, minZ + 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, minZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ - 1, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, maxZ, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y + 1, maxZ - 1, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ - 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, maxZ,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y + 1, maxZ - 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
 			}
 		}
 
+		/////////////////// Bottom //////////////////////
 		normal = normalize(
 				new Vector3f(minX, minY, minZ),
 				new Vector3f(maxX, minY, minZ),
@@ -330,30 +516,85 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		{
 			for (float z = minZ; z < maxZ; ++z)
 			{
-				makeVertex(transform, bufferbuilder, sprite, minX, y, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y, z + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX, y, z + 1, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y, z,
+						16, 16,
 
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, z, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y, z, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y, z + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, z + 1, 0, 16, normal.x, normal.y, normal.z);
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y, z,
+						16, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y, z + 1,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y, z + 1,
+						0, 16,
+						normal.x, normal.y, normal.z);
+
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y, z,
+						0, 0,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y, z,
+						0, 16,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y, z + 1,
+						16, 16,
+
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y, z + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
 			}
-			for (float x = minX + 1; x < maxX - 1; ++x)
+			for (float x = minX; x < maxX; ++x)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, minZ, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, minZ + 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ + 1, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, minZ,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, minZ + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ + 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ - 1, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, maxZ - 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, maxZ, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ - 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, maxZ - 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, maxZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ,
+						16, 16,
+						normal.x, normal.y, normal.z);
 			}
 		}
 
+		////////////////////////TOP/////////////////////////
 		normal = normalize(
 				new Vector3f(minX, maxY, maxZ),
 				new Vector3f(maxX, maxY, maxZ),
@@ -363,27 +604,75 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 		{
 			for (float z = minZ; z < maxZ; ++z)
 			{
-				makeVertex(transform, bufferbuilder, sprite, minX, y, z + 1, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y, z + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX + 1, y, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, minX, y, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y, z + 1,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y, z + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX + 1, y, z,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						minX, y, z,
+						0, 16,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, z + 1, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y, z + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX, y, z, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, maxX - 1, y, z, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y, z + 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y, z + 1,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX, y, z,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						maxX - 1, y, z,
+						16, 0,
+						normal.x, normal.y, normal.z);
 			}
-			for (float x = minX + 1; x < maxX - 1; ++x)
+			for (float x = minX; x < maxX; ++x)
 			{
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, maxZ, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, maxZ - 1, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, maxZ - 1, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, maxZ,
+						16, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, maxZ - 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, maxZ - 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
 
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ + 1, 0, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, minZ + 1, 16, 0, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x + 1, y, minZ, 16, 16, normal.x, normal.y, normal.z);
-				makeVertex(transform, bufferbuilder, sprite, x, y, minZ, 0, 16, normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ + 1,
+						16, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, minZ + 1,
+						0, 0,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x + 1, y, minZ,
+						0, 16,
+						normal.x, normal.y, normal.z);
+				makeVertex(transform, bufferbuilder, sprite,
+						x, y, minZ,
+						16, 16,
+						normal.x, normal.y, normal.z);
 			}
 		}
 		return bufferbuilder;

@@ -5,12 +5,14 @@ import com.github.atomicblom.eightyone.blocks.PortalTileEntity;
 import com.github.atomicblom.eightyone.client.DungeonBakedModel;
 import com.github.atomicblom.eightyone.client.PortalTESR;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -22,6 +24,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 @Mod.EventBusSubscriber(Side.CLIENT)
@@ -74,6 +77,21 @@ public class ClientRegistrationEvents
 	public static void onTextureStitch(TextureStitchEvent.Pre event) {
 		final TextureMap map = event.getMap();
 		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal3"));
-		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame"));
+		map.registerSprite(new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame2"));
+	}
+
+	private static boolean wasCreativeLastFrame;
+
+	@SubscribeEvent
+	public static void onTick(TickEvent.ClientTickEvent event) {
+		final Minecraft minecraft = Minecraft.getMinecraft();
+		if (minecraft.player == null) return;
+		final boolean isCreativeThisFrame = minecraft.player.isCreative();
+		if (!wasCreativeLastFrame && isCreativeThisFrame) {
+			minecraft.renderGlobal.loadRenderers();
+		} else if (wasCreativeLastFrame && !isCreativeThisFrame) {
+			minecraft.renderGlobal.loadRenderers();
+		}
+		wasCreativeLastFrame = isCreativeThisFrame;
 	}
 }

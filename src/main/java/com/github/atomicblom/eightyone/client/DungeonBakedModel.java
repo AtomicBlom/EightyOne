@@ -75,7 +75,10 @@ public class DungeonBakedModel implements IBakedModel {
 			}
 		}
 
-		if (renderLayer == BlockRenderLayer.CUTOUT && iBlockState != null) {
+		final Minecraft minecraft = Minecraft.getMinecraft();
+		final boolean isCreativeThisFrame = minecraft.player.isCreative();
+
+		if (isCreativeThisFrame && renderLayer == BlockRenderLayer.CUTOUT && iBlockState != null) {
 			if (quads.isEmpty()) {
 				quads = Lists.newArrayList();
 			}
