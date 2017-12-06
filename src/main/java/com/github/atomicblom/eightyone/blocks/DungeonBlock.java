@@ -1,6 +1,7 @@
 package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.Reference;
+import com.github.atomicblom.eightyone.blocks.material.DungeonMaterial;
 import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
 import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
@@ -13,12 +14,15 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -36,7 +40,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 {
 	public DungeonBlock()
 	{
-		super(Material.ROCK);
+		super(new DungeonMaterial());
 		setHardness(2.0F);
 		setSoundType(SoundType.STONE);
 		setBlockUnbreakable();
@@ -80,15 +84,45 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 		return false;
 	}
 
-	@Override
-	public boolean doesSideBlockRendering(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing face)
+	/**
+	 * Called When an Entity Collided with the Block
+	 */
+	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
 	{
-		final IBlockState paintSource = getPaintSource(world, pos);
-		if (paintSource != null)
-		{
-			return paintSource.getBlock().doesSideBlockRendering(paintSource, world, pos, face);
+		final IBlockState mimicBlockState = getPaintSource(worldIn, pos);
+		if (mimicBlockState != null) {
+			mimicBlockState.getBlock().onEntityCollidedWithBlock(worldIn, pos, state, entityIn);
 		}
-		return super.doesSideBlockRendering(state, world, pos, face);
+	}
+
+	@Override
+	public float getSlipperiness(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable Entity entity) {
+		final IBlockState mimicBlockState = getPaintSource(world, pos);
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().getSlipperiness(state, world, pos, entity);
+		}
+		return super.getSlipperiness(state, world, pos, entity);
+	}
+
+	@Override
+	public boolean doesSideBlockRendering(IBlockState state, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
+	{
+		final IBlockState mimicBlockState = getPaintSource(blockAccess, pos);
+		if (mimicBlockState != null)
+		{
+			if (useGlassBehaviour(mimicBlockState)) {
+				//TODO: Glass - See BlockBreakable
+				return mimicBlockState.getBlock().doesSideBlockRendering(mimicBlockState, blockAccess, pos, side);
+			} else {
+				return mimicBlockState.getBlock().doesSideBlockRendering(mimicBlockState, blockAccess, pos, side);
+			}
+		}
+		return super.doesSideBlockRendering(state, blockAccess, pos, side);
+	}
+
+	private boolean useGlassBehaviour(IBlockState mimicBlockState) {
+		Block block = mimicBlockState.getBlock();
+		return block == Blocks.GLASS || block == Blocks.STAINED_GLASS;
 	}
 
 	@Nullable

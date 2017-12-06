@@ -1,6 +1,7 @@
 package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.Reference;
+import com.github.atomicblom.eightyone.blocks.material.SecretMaterial;
 import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
 import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
@@ -38,7 +39,7 @@ public class SecretBlock extends Block implements ITileEntityProvider
 {
 	public SecretBlock()
 	{
-		super(Material.AIR);
+		super(new SecretMaterial());
 		setHardness(2.0F);
 		setSoundType(SoundType.STONE);
 		setBlockUnbreakable();

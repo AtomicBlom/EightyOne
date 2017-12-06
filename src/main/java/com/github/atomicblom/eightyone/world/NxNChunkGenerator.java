@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class NxNChunkGenerator implements IChunkGenerator
 {
 	private static final int ROOM_SET_SIZE = 5;
-	private static final int BASE_HEIGHT = 8;
+	private static final int BASE_HEIGHT = 32;
 	private final World world;
 	private final long seed;
 	private final boolean mapFeaturesEnabled;
