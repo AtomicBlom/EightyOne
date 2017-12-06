@@ -1,5 +1,6 @@
 package com.github.atomicblom.eightyone;
 
+import com.github.atomicblom.eightyone.util.SpiralIterable;
 import com.github.atomicblom.eightyone.world.NxNChunkGenerator;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
 import com.github.atomicblom.eightyone.world.Room;

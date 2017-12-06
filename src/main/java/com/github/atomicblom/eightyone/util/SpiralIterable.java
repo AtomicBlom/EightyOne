@@ -1,4 +1,4 @@
-package com.github.atomicblom.eightyone;
+package com.github.atomicblom.eightyone.util;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;

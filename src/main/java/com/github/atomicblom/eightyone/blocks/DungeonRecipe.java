@@ -27,13 +27,14 @@ public class DungeonRecipe extends Impl<IRecipe> implements IRecipe
 
 				if (!itemstack.isEmpty())
 				{
-					if (itemstack.getItem() == ItemLibrary.dungeon_block) {
+					final Item item = itemstack.getItem();
+					if (item == ItemLibrary.dungeon_block || item == ItemLibrary.secret_block) {
 						if (hasDungeonBlock) {
 							return false;
 						} else {
 							hasDungeonBlock = true;
 						}
-					} else if (itemstack.getItem() instanceof ItemBlock) {
+					} else if (item instanceof ItemBlock) {
 						if (hasBlock) {
 							return false;
 						} else {
@@ -60,7 +61,7 @@ public class DungeonRecipe extends Impl<IRecipe> implements IRecipe
 				if (!itemstack.isEmpty())
 				{
 					final Item item = itemstack.getItem();
-					if (item == ItemLibrary.dungeon_block) {
+					if (item == ItemLibrary.dungeon_block || item == ItemLibrary.secret_block) {
 						dungeonBlock = itemstack.copy();
 					} else if (item instanceof ItemBlock) {
 						final Block block = ((ItemBlock) item).getBlock();

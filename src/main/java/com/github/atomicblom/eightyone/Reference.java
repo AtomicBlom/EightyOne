@@ -1,5 +1,7 @@
 package com.github.atomicblom.eightyone;
 
+import com.github.atomicblom.eightyone.blocks.properties.MimicBlockProperty;
+import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ResourceLocation;
 
@@ -15,7 +17,11 @@ public final class Reference {
 	public static final class Blocks {
 		public static final ResourceLocation PORTAL = resource("portal");
 		public static final ResourceLocation DUNGEON_BLOCK = resource("dungeon_block");
+		public static final ResourceLocation SECRET_BLOCK = resource("secret_block");
 		public static final ResourceLocation PLACEHOLDER_LOOT_CHEST = resource("placeholder_loot_chest");
+
+		public static final PropertyBool OVERLAY = PropertyBool.create("overlay");
+		public static final MimicBlockProperty MIMIC = new MimicBlockProperty();
 	}
 
 	private Reference() {}

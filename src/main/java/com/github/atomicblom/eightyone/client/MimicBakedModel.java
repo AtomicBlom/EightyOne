@@ -1,7 +1,6 @@
 package com.github.atomicblom.eightyone.client;
 
-import com.github.atomicblom.eightyone.BlockLibrary;
-import com.github.atomicblom.eightyone.blocks.DungeonBlock;
+import com.github.atomicblom.eightyone.Reference;
 import com.google.common.collect.Lists;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -15,21 +14,19 @@ import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import org.apache.commons.lang3.tuple.Pair;
-
 import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by TheGreyGhost on 19/04/2015.
  * This class is used to customise the rendering of the camouflage block, based on the block it is copying.
  */
-public class DungeonBakedModel implements IBakedModel {
+public class MimicBakedModel implements IBakedModel {
 
 	IBlockState UNCAMOUFLAGED_BLOCK = Blocks.AIR.getDefaultState();
 
-	public DungeonBakedModel(IBakedModel unCamouflagedModel)
+	public MimicBakedModel(IBakedModel unCamouflagedModel)
 	{
 		modelWhenNotCamouflaged = unCamouflagedModel;
 
@@ -40,11 +37,11 @@ public class DungeonBakedModel implements IBakedModel {
 			= new ModelResourceLocation("eightyone:dungeon_block");
 
 	// create a variant tag (ModelResourceLocation) for our block
-	public static final ModelResourceLocation variantTag
-			= new ModelResourceLocation("eightyone:dungeon_block", "normal");
+	public static final ModelResourceLocation mimicTag
+			= new ModelResourceLocation("eightyone:dungeon_block", "mimic");
 
-	public static final ModelResourceLocation lockTag
-			= new ModelResourceLocation("eightyone:dungeon_block", "lock");
+	public static final ModelResourceLocation overlayTag
+			= new ModelResourceLocation("eightyone:dungeon_block", "overlay");
 
 	// return a list of the quads making up the model.
 	// We choose the model based on the IBlockstate provided by the caller.
@@ -60,7 +57,7 @@ public class DungeonBakedModel implements IBakedModel {
 		if (iBlockState instanceof IExtendedBlockState)
 		{
 			IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
-			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(DungeonBlock.COPIEDBLOCK);
+			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(Reference.Blocks.MIMIC);
 
 			if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK && copiedBlockIBlockState != null)
 			{
@@ -79,9 +76,9 @@ public class DungeonBakedModel implements IBakedModel {
 			if (quads.isEmpty()) {
 				quads = Lists.newArrayList();
 			}
-			final IBlockState state = BlockLibrary.dungeon_block.getDefaultState().withProperty(DungeonBlock.SOURCEIMAGE, true);
+			final IBlockState state = iBlockState.getBlock().getDefaultState().withProperty(Reference.Blocks.OVERLAY, true);
 			final IBakedModel modelForState = blockModelShapes.getModelForState(state);
-			quads.addAll(modelForState.getQuads(iBlockState, side, rand));
+			quads.addAll(modelForState.getQuads(state, side, rand));
 		}
 
 		return quads;
@@ -102,7 +99,7 @@ public class DungeonBakedModel implements IBakedModel {
 		// If the block is null, the block is not camouflaged so use the uncamouflaged model.
 		if (iBlockState instanceof IExtendedBlockState) {
 			IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
-			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(DungeonBlock.COPIEDBLOCK);
+			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(Reference.Blocks.MIMIC);
 
 			if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK) {
 				// Retrieve the IBakedModel of the copied block and return it.

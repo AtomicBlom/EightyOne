@@ -1,5 +1,7 @@
-package com.github.atomicblom.eightyone;
+package com.github.atomicblom.eightyone.registration;
 
+import com.github.atomicblom.eightyone.BlockLibrary;
+import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.*;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPlaceholderLootChest;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPortal;
@@ -30,6 +32,7 @@ public class RegistrationEvents
 
 		registerBlock(registry, new PortalBlock(), Reference.Blocks.PORTAL);
 		registerBlock(registry, new DungeonBlock(), Reference.Blocks.DUNGEON_BLOCK);
+		registerBlock(registry, new SecretBlock(), Reference.Blocks.SECRET_BLOCK);
 		registerBlock(registry, new PlaceholderLootChest(), Reference.Blocks.PLACEHOLDER_LOOT_CHEST);
 
 		GameRegistry.registerTileEntity(TileEntityPortal.class, "portal");
@@ -50,6 +53,7 @@ public class RegistrationEvents
 		final IForgeRegistry<Item> registry = event.getRegistry();
 		registerItemFromBlock(registry, BlockLibrary.portal);
 		registerItemFromBlock(registry, BlockLibrary.dungeon_block);
+		registerItemFromBlock(registry, BlockLibrary.secret_block);
 		registerItemFromBlock(registry, BlockLibrary.placeholder_loot_chest);
 	}
 
