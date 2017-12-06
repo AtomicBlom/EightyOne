@@ -1,0 +1,46 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "transform": "forge:default-block",
+    "model": "eightyone:placeholder_loot_chest",
+    "textures": {
+      "up": "eightyone:blocks/chest-top",
+      "down": "eightyone:blocks/chest-top",
+      "north": "eightyone:blocks/chest-side",
+      "south": "eightyone:blocks/chest-side",
+      "east": "eightyone:blocks/chest-side",
+      "west": "eightyone:blocks/chest-side",
+      "particle": "eightyone:blocks/chest-side"
+    }
+  },
+  "variants": {
+    "inventory":{
+      "y ": 180,
+      "textures": {
+        "north": "eightyone:blocks/chest-front"
+      }
+    },
+    "facing": {
+      "north": {
+        "textures": {
+          "north": "eightyone:blocks/chest-front"
+        }
+      },
+      "south": {
+        "textures": {
+          "south": "eightyone:blocks/chest-front"
+        }
+      },
+      "east": {
+        "textures": {
+          "east": "eightyone:blocks/chest-front"
+        }
+      },
+      "west": {
+        "textures": {
+          "west": "eightyone:blocks/chest-front"
+        }
+      }
+    }
+  }
+}

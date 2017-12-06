@@ -1,6 +1,7 @@
 package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.ItemLibrary;
+import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.InventoryCrafting;
@@ -9,10 +10,9 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
-import net.minecraftforge.registries.IForgeRegistryEntry;
-import java.awt.*;
+import net.minecraftforge.registries.IForgeRegistryEntry.Impl;
 
-public class DungeonRecipe extends IForgeRegistryEntry.Impl<IRecipe> implements IRecipe
+public class DungeonRecipe extends Impl<IRecipe> implements IRecipe
 {
 	@Override
 	public boolean matches(InventoryCrafting inv, World worldIn)
@@ -71,7 +71,7 @@ public class DungeonRecipe extends IForgeRegistryEntry.Impl<IRecipe> implements 
 		}
 
 		if (!dungeonBlock.isEmpty() && blockState != null) {
-			PainterUtil2.setSourceBlock(dungeonBlock, blockState);
+			CopiedBlockUtil.setCopiedBlock(dungeonBlock, blockState);
 		}
 		return dungeonBlock;
 	}

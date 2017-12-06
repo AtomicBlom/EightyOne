@@ -15,6 +15,7 @@ public final class Reference {
 	public static final class Blocks {
 		public static final ResourceLocation PORTAL = resource("portal");
 		public static final ResourceLocation DUNGEON_BLOCK = resource("dungeon_block");
+		public static final ResourceLocation PLACEHOLDER_LOOT_CHEST = resource("placeholder_loot_chest");
 	}
 
 	private Reference() {}

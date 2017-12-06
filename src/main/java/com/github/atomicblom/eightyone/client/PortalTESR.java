@@ -1,7 +1,7 @@
 package com.github.atomicblom.eightyone.client;
 
 import com.github.atomicblom.eightyone.Reference;
-import com.github.atomicblom.eightyone.blocks.PortalTileEntity;
+import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPortal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -16,7 +16,7 @@ import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
-public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
+public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 {
 	String portalTexture = new ResourceLocation(Reference.MOD_ID, "blocks/portal3").toString();
 	String portalTexture_frame = new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame2").toString();
@@ -25,7 +25,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<PortalTileEntity>
 	private BufferBuilder portalFrame;
 
 	@Override
-	public void render(PortalTileEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alphalpha)
+	public void render(TileEntityPortal te, double x, double y, double z, float partialTicks, int destroyStage, float alphalpha)
 	{
 
 		if (portalArtifact == null) {

@@ -1,8 +1,8 @@
-package com.github.atomicblom.eightyone.blocks;
+package com.github.atomicblom.eightyone.blocks.tileentity;
 
 import net.minecraft.tileentity.TileEntity;
 
-public class PortalTileEntity extends TileEntity
+public class TileEntityPortal extends TileEntity
 {
 	private float yRotation;
 	private long pulse;
@@ -19,7 +19,6 @@ public class PortalTileEntity extends TileEntity
 	}
 
 	public void setYRotation(float yRotation) {
-
 		this.yRotation = yRotation;
 	}
 

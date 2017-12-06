@@ -3,6 +3,7 @@ package com.github.atomicblom.eightyone.blocks;
 import com.github.atomicblom.eightyone.EightyOneTeleporter;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
+import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPortal;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.MapColor;
@@ -25,9 +26,9 @@ import net.minecraftforge.common.ForgeHooks;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public class Portal extends Block implements ITileEntityProvider
+public class PortalBlock extends Block implements ITileEntityProvider
 {
-	public Portal()
+	public PortalBlock()
 	{
 		super(Material.ROCK, MapColor.GRAY);
 		setTickRandomly(true);
@@ -301,7 +302,7 @@ public class Portal extends Block implements ITileEntityProvider
 	@Override
 	public TileEntity createNewTileEntity(World worldIn, int meta)
 	{
-		return new PortalTileEntity();
+		return new TileEntityPortal();
 	}
 
 	@Override

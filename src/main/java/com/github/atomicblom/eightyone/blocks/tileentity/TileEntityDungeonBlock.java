@@ -1,5 +1,6 @@
-package com.github.atomicblom.eightyone.blocks;
+package com.github.atomicblom.eightyone.blocks.tileentity;
 
+import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
@@ -7,19 +8,19 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import javax.annotation.Nullable;
 
-public class TileEntityDungeonBlock extends TileEntity implements IPaintableTileEntity
+public class TileEntityDungeonBlock extends TileEntity implements IMimicTileEntity
 {
 	private IBlockState paintSource = Blocks.AIR.getDefaultState();
 
 	public TileEntityDungeonBlock() {
 	}
 
-	public void setPaintSource(@Nullable IBlockState paintSource) {
+	public void setCopiedBlock(@Nullable IBlockState paintSource) {
 		this.paintSource = paintSource;
 		markDirty();
 	}
 
-	public IBlockState getPaintSource() {
+	public IBlockState getCopiedBlock() {
 		return paintSource;
 	}
 

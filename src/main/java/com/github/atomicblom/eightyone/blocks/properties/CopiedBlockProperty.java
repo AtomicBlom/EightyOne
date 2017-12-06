@@ -1,9 +1,9 @@
-package com.github.atomicblom.eightyone.blocks;
+package com.github.atomicblom.eightyone.blocks.properties;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 
-public class UnlistedPropertyCopiedBlock implements IUnlistedProperty<IBlockState>
+public class CopiedBlockProperty implements IUnlistedProperty<IBlockState>
 {
 	@Override
 	public String getName() {

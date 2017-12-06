@@ -1,5 +1,9 @@
 package com.github.atomicblom.eightyone.blocks;
 
+import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockProperty;
+import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
+import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
+import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
@@ -31,7 +35,7 @@ import java.util.List;
 
 public class DungeonBlock extends Block implements ITileEntityProvider
 {
-	public static final UnlistedPropertyCopiedBlock COPIEDBLOCK = new UnlistedPropertyCopiedBlock();
+	public static final CopiedBlockProperty COPIEDBLOCK = new CopiedBlockProperty();
 	public static final PropertyBool SOURCEIMAGE = PropertyBool.create("is_lock_model");
 
 	public DungeonBlock()
@@ -58,9 +62,9 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
 		if (state instanceof IExtendedBlockState) {
 			final TileEntity te = world.getTileEntity(pos);
-			if (te instanceof IPaintableTileEntity) {
+			if (te instanceof IMimicTileEntity) {
 				IExtendedBlockState retval = (IExtendedBlockState)state;
-				final IBlockState copiedBlock = ((IPaintableTileEntity) te).getPaintSource();
+				final IBlockState copiedBlock = ((IMimicTileEntity) te).getCopiedBlock();
 				retval = retval.withProperty(COPIEDBLOCK, copiedBlock);
 				return retval;
 			}
@@ -74,9 +78,6 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 		return true;
 	}
 
-	// used by the renderer to control lighting and visibility of other blocks.
-	// set to true because this block is opaque and occupies the entire 1x1x1 space
-	// not strictly required because the default (super method) is true
 	@Override
 	@Deprecated
 	public boolean isOpaqueCube(IBlockState iBlockState) {
@@ -104,7 +105,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	@Override
 	public void onBlockPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull EntityLivingBase player,
 	                            @Nonnull ItemStack stack) {
-		setPaintSource(world, pos, PainterUtil2.getSourceBlock(stack));
+		setPaintSource(world, pos, CopiedBlockUtil.getCopiedBlock(stack));
 		if (!world.isRemote) {
 			world.notifyBlockUpdate(pos, state, state, 3);
 		}
@@ -113,8 +114,8 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 
 	private static void setPaintSource(@Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nullable IBlockState paintSource) {
 		final TileEntity te = world.getTileEntity(pos);
-		if (te instanceof IPaintableTileEntity) {
-			((IPaintableTileEntity) te).setPaintSource(paintSource);
+		if (te instanceof IMimicTileEntity) {
+			((IMimicTileEntity) te).setCopiedBlock(paintSource);
 		}
 	}
 
@@ -133,7 +134,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	@Override
 	public void addInformation(ItemStack stack, @Nullable World player, List<String> tooltip, ITooltipFlag advanced)
 	{
-		final IBlockState sourceBlock = PainterUtil2.getSourceBlock(stack);
+		final IBlockState sourceBlock = CopiedBlockUtil.getCopiedBlock(stack);
 		if (sourceBlock == null) {
 			tooltip.add("Empty");
 		} else {
@@ -153,14 +154,14 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	public ItemStack getPickBlock(@Nonnull IBlockState state, @Nonnull RayTraceResult target, @Nonnull World world, @Nonnull BlockPos pos,
 	                              @Nonnull EntityPlayer player) {
 		final ItemStack pickBlock = super.getPickBlock(state, target, world, pos, player);
-		PainterUtil2.setSourceBlock(pickBlock, getPaintSource(world, pos));
+		CopiedBlockUtil.setCopiedBlock(pickBlock, getPaintSource(world, pos));
 		return pickBlock;
 	}
 
 	private static IBlockState getPaintSource(@Nonnull IBlockAccess world, @Nonnull BlockPos pos) {
 		final TileEntity te = world.getTileEntity(pos);
-		if (te instanceof IPaintableTileEntity) {
-			return ((IPaintableTileEntity) te).getPaintSource();
+		if (te instanceof IMimicTileEntity) {
+			return ((IMimicTileEntity) te).getCopiedBlock();
 		}
 		return null;
 	}

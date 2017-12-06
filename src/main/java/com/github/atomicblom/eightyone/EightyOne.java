@@ -1,29 +1,38 @@
 package com.github.atomicblom.eightyone;
 
+import com.github.atomicblom.eightyone.client.gui.GuiHandler;
 import com.github.atomicblom.eightyone.command.DescribeRoomCommand;
 import com.github.atomicblom.eightyone.command.ReloadRoomsCommand;
+import com.github.atomicblom.eightyone.registration.PacketHandler;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 @Mod(modid = Reference.MOD_ID, name=Reference.MOD_NAME, version = Reference.VERSION, acceptedMinecraftVersions = "[1.12, 1.13)")
 public class EightyOne
 {
+    @Instance
+    public static EightyOne instance;
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         TemplateManager.setConfigurationDirectory(event.getModConfigurationDirectory());
+        PacketHandler.registerMessages(Reference.MOD_ID);
     }
 
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
         DimensionManager.registerDimension(81, NxNWorldProvider.initDimensionType());
+        NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
 
     @EventHandler
