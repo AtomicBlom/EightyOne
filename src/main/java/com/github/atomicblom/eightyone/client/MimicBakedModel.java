@@ -24,24 +24,13 @@ import java.util.List;
  */
 public class MimicBakedModel implements IBakedModel {
 
-	IBlockState UNCAMOUFLAGED_BLOCK = Blocks.AIR.getDefaultState();
+	IBlockState NOT_MIMICKING = Blocks.AIR.getDefaultState();
 
 	public MimicBakedModel(IBakedModel unCamouflagedModel)
 	{
 		modelWhenNotCamouflaged = unCamouflagedModel;
 
 	}
-
-	// create a blockstates tag (ModelResourceLocation) for our block
-	public static final ModelResourceLocation blockStatesFileName
-			= new ModelResourceLocation("eightyone:dungeon_block");
-
-	// create a variant tag (ModelResourceLocation) for our block
-	public static final ModelResourceLocation mimicTag
-			= new ModelResourceLocation("eightyone:dungeon_block", "mimic");
-
-	public static final ModelResourceLocation overlayTag
-			= new ModelResourceLocation("eightyone:dungeon_block", "overlay");
 
 	// return a list of the quads making up the model.
 	// We choose the model based on the IBlockstate provided by the caller.
@@ -54,62 +43,33 @@ public class MimicBakedModel implements IBakedModel {
 		BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
 		BlockModelShapes blockModelShapes = blockRendererDispatcher.getBlockModelShapes();
 
+		//Mimic
 		if (iBlockState instanceof IExtendedBlockState)
 		{
-			IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
-			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(Reference.Blocks.MIMIC);
+			IExtendedBlockState extendedBlockState = (IExtendedBlockState) iBlockState;
+			IBlockState mimicBlockState = extendedBlockState.getValue(Reference.Blocks.MIMIC);
 
-			if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK && copiedBlockIBlockState != null)
+			if (mimicBlockState != NOT_MIMICKING && mimicBlockState != null)
 			{
-				if (copiedBlockIBlockState.getBlock().canRenderInLayer(copiedBlockIBlockState, renderLayer))
+				if (mimicBlockState.getBlock().canRenderInLayer(mimicBlockState, renderLayer))
 				{
-					IBakedModel copiedBlockModel = blockModelShapes.getModelForState(copiedBlockIBlockState);
-					quads = copiedBlockModel.getQuads(copiedBlockIBlockState, side, rand);
+					IBakedModel mimicBakedModel = blockModelShapes.getModelForState(mimicBlockState);
+					quads.addAll(mimicBakedModel.getQuads(mimicBlockState, side, rand));
 				}
 			}
 		}
 
+		//Overlay
 		final Minecraft minecraft = Minecraft.getMinecraft();
 		final boolean isCreativeThisFrame = minecraft.player.isCreative();
 
 		if (isCreativeThisFrame && renderLayer == BlockRenderLayer.CUTOUT && iBlockState != null) {
-			if (quads.isEmpty()) {
-				quads = Lists.newArrayList();
-			}
 			final IBlockState state = iBlockState.getBlock().getDefaultState().withProperty(Reference.Blocks.OVERLAY, true);
 			final IBakedModel modelForState = blockModelShapes.getModelForState(state);
 			quads.addAll(modelForState.getQuads(state, side, rand));
 		}
 
 		return quads;
-	}
-
-	// This method is used to create a suitable IBakedModel based on the IBlockState of the block being rendered.
-	// If IBlockState is an instance of IExtendedBlockState, you can use it to pass in any information you want.
-	private IBakedModel handleBlockState(@Nullable IBlockState iBlockState)
-	{
-		Minecraft mc = Minecraft.getMinecraft();
-		BlockRendererDispatcher blockRendererDispatcher = mc.getBlockRendererDispatcher();
-		BlockModelShapes blockModelShapes = blockRendererDispatcher.getBlockModelShapes();
-
-		IBakedModel retval = modelWhenNotCamouflaged;  // default
-		IBlockState UNCAMOUFLAGED_BLOCK = Blocks.AIR.getDefaultState();
-
-		// Extract the block to be copied from the IExtendedBlockState, previously set by Block.getExtendedState()
-		// If the block is null, the block is not camouflaged so use the uncamouflaged model.
-		if (iBlockState instanceof IExtendedBlockState) {
-			IExtendedBlockState iExtendedBlockState = (IExtendedBlockState) iBlockState;
-			IBlockState copiedBlockIBlockState = iExtendedBlockState.getValue(Reference.Blocks.MIMIC);
-
-			if (copiedBlockIBlockState != UNCAMOUFLAGED_BLOCK) {
-				// Retrieve the IBakedModel of the copied block and return it.
-
-				IBakedModel copiedBlockModel = blockModelShapes.getModelForState(copiedBlockIBlockState);
-				retval = copiedBlockModel;
-			}
-		}
-
-		return retval;
 	}
 
 	private IBakedModel modelWhenNotCamouflaged;
