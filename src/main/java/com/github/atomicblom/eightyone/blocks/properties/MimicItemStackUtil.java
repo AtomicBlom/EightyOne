@@ -8,29 +8,29 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
 import javax.annotation.Nonnull;
 
-public class CopiedBlockUtil
+public class MimicItemStackUtil
 {
-	public static IBlockState getCopiedBlock(@Nonnull ItemStack itemStack)
+	public static IBlockState getMimickedBlock(@Nonnull ItemStack itemStack)
 	{
 		final NBTTagCompound tag = NbtValue.BLOCKSTATE.getTag(itemStack.getTagCompound());
 		if (tag != null)
 		{
-			final IBlockState copiedBlockState = NBTUtil.readBlockState(tag);
-			if (copiedBlockState != Blocks.AIR.getDefaultState())
+			final IBlockState mimicBlockState = NBTUtil.readBlockState(tag);
+			if (mimicBlockState != Blocks.AIR.getDefaultState())
 			{
-				return copiedBlockState;
+				return mimicBlockState;
 			}
 		}
 		return null;
 	}
 
-	public static void setCopiedBlock(@Nonnull ItemStack itemStack, IBlockState copiedBlockState)
+	public static void setMimickedBlock(@Nonnull ItemStack itemStack, IBlockState mimicBlockState)
 	{
 		if (itemStack.isEmpty())
 		{
 			return;
 		}
-		if (copiedBlockState == null || copiedBlockState == Blocks.AIR)
+		if (mimicBlockState == null || mimicBlockState == Blocks.AIR)
 		{
 			NbtValue.BLOCKSTATE.removeTag(itemStack);
 			return;
@@ -41,7 +41,7 @@ public class CopiedBlockUtil
 			{
 				itemStack.setTagCompound(tagCompound = new NBTTagCompound());
 			}
-			NbtValue.BLOCKSTATE.setTag(tagCompound, NBTUtil.writeBlockState(new NBTTagCompound(), copiedBlockState));
+			NbtValue.BLOCKSTATE.setTag(tagCompound, NBTUtil.writeBlockState(new NBTTagCompound(), mimicBlockState));
 		}
 	}
 }

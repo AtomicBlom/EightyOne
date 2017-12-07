@@ -1,7 +1,7 @@
 package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.ItemLibrary;
-import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
+import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.InventoryCrafting;
@@ -72,7 +72,7 @@ public class DungeonRecipe extends Impl<IRecipe> implements IRecipe
 		}
 
 		if (!dungeonBlock.isEmpty() && blockState != null) {
-			CopiedBlockUtil.setCopiedBlock(dungeonBlock, blockState);
+			MimicItemStackUtil.setMimickedBlock(dungeonBlock, blockState);
 		}
 		return dungeonBlock;
 	}

@@ -2,13 +2,12 @@ package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.material.SecretMaterial;
-import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
+import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -40,7 +39,6 @@ public class SecretBlock extends Block implements ITileEntityProvider
 	public SecretBlock()
 	{
 		super(new SecretMaterial());
-		setHardness(2.0F);
 		setSoundType(SoundType.STONE);
 		setBlockUnbreakable();
 		setResistance(6000000.0F);
@@ -129,7 +127,7 @@ public class SecretBlock extends Block implements ITileEntityProvider
 	@Override
 	public void onBlockPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull EntityLivingBase player,
 	                            @Nonnull ItemStack stack) {
-		setPaintSource(world, pos, CopiedBlockUtil.getCopiedBlock(stack));
+		setPaintSource(world, pos, MimicItemStackUtil.getMimickedBlock(stack));
 		if (!world.isRemote) {
 			world.notifyBlockUpdate(pos, state, state, 3);
 		}
@@ -156,19 +154,15 @@ public class SecretBlock extends Block implements ITileEntityProvider
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World player, List<String> tooltip, ITooltipFlag advanced)
+	public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag advanced)
 	{
-		final IBlockState sourceBlock = CopiedBlockUtil.getCopiedBlock(stack);
+		final IBlockState sourceBlock = MimicItemStackUtil.getMimickedBlock(stack);
 		if (sourceBlock == null) {
 			tooltip.add("Empty");
 		} else {
-			final Block block = sourceBlock.getBlock();
-			final int metaFromState = block.getMetaFromState(sourceBlock);
+			ItemStack pickBlock = sourceBlock.getBlock().getPickBlock(sourceBlock, null, world, BlockPos.ORIGIN, null);
 
-			Item i = Item.getItemFromBlock(block);
-
-
-			tooltip.add("Contains: " + I18n.translateToLocal(block.getUnlocalizedName() + ".name"));
+			tooltip.add("Contains: " + I18n.translateToLocal(pickBlock.getDisplayName()));
 		}
 
 	}
@@ -178,7 +172,7 @@ public class SecretBlock extends Block implements ITileEntityProvider
 	public ItemStack getPickBlock(@Nonnull IBlockState state, @Nonnull RayTraceResult target, @Nonnull World world, @Nonnull BlockPos pos,
 	                              @Nonnull EntityPlayer player) {
 		final ItemStack pickBlock = super.getPickBlock(state, target, world, pos, player);
-		CopiedBlockUtil.setCopiedBlock(pickBlock, getPaintSource(world, pos));
+		MimicItemStackUtil.setMimickedBlock(pickBlock, getPaintSource(world, pos));
 		return pickBlock;
 	}
 

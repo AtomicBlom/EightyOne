@@ -2,13 +2,12 @@ package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.material.DungeonMaterial;
-import com.github.atomicblom.eightyone.blocks.properties.CopiedBlockUtil;
+import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -22,7 +21,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -89,7 +87,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	 */
 	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
 	{
-		final IBlockState mimicBlockState = getPaintSource(worldIn, pos);
+		final IBlockState mimicBlockState = getMimicBlock(worldIn, pos);
 		if (mimicBlockState != null) {
 			mimicBlockState.getBlock().onEntityCollidedWithBlock(worldIn, pos, state, entityIn);
 		}
@@ -97,7 +95,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 
 	@Override
 	public float getSlipperiness(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable Entity entity) {
-		final IBlockState mimicBlockState = getPaintSource(world, pos);
+		final IBlockState mimicBlockState = getMimicBlock(world, pos);
 		if (mimicBlockState != null) {
 			return mimicBlockState.getBlock().getSlipperiness(state, world, pos, entity);
 		}
@@ -107,7 +105,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	@Override
 	public boolean doesSideBlockRendering(IBlockState state, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
 	{
-		final IBlockState mimicBlockState = getPaintSource(blockAccess, pos);
+		final IBlockState mimicBlockState = getMimicBlock(blockAccess, pos);
 		if (mimicBlockState != null)
 		{
 			if (useGlassBehaviour(mimicBlockState)) {
@@ -135,17 +133,9 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	@Override
 	public void onBlockPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull EntityLivingBase player,
 	                            @Nonnull ItemStack stack) {
-		setPaintSource(world, pos, CopiedBlockUtil.getCopiedBlock(stack));
+		setMimicBlock(world, pos, MimicItemStackUtil.getMimickedBlock(stack));
 		if (!world.isRemote) {
 			world.notifyBlockUpdate(pos, state, state, 3);
-		}
-	}
-
-
-	private static void setPaintSource(@Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nullable IBlockState paintSource) {
-		final TileEntity te = world.getTileEntity(pos);
-		if (te instanceof IMimicTileEntity) {
-			((IMimicTileEntity) te).setCopiedBlock(paintSource);
 		}
 	}
 
@@ -162,33 +152,34 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World player, List<String> tooltip, ITooltipFlag advanced)
+	public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag advanced)
 	{
-		final IBlockState sourceBlock = CopiedBlockUtil.getCopiedBlock(stack);
+		final IBlockState sourceBlock = MimicItemStackUtil.getMimickedBlock(stack);
 		if (sourceBlock == null) {
 			tooltip.add("Empty");
 		} else {
-			final Block block = sourceBlock.getBlock();
-			final int metaFromState = block.getMetaFromState(sourceBlock);
+			ItemStack pickBlock = sourceBlock.getBlock().getPickBlock(sourceBlock, null, world, BlockPos.ORIGIN, null);
 
-			Item i = Item.getItemFromBlock(block);
-
-
-			tooltip.add("Contains: " + I18n.translateToLocal(block.getUnlocalizedName() + ".name"));
+			tooltip.add("Contains: " + I18n.translateToLocal(pickBlock.getDisplayName()));
 		}
-
 	}
 
-	@Nonnull
 	@Override
-	public ItemStack getPickBlock(@Nonnull IBlockState state, @Nonnull RayTraceResult target, @Nonnull World world, @Nonnull BlockPos pos,
-	                              @Nonnull EntityPlayer player) {
+	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos,
+	                              EntityPlayer player) {
 		final ItemStack pickBlock = super.getPickBlock(state, target, world, pos, player);
-		CopiedBlockUtil.setCopiedBlock(pickBlock, getPaintSource(world, pos));
+		MimicItemStackUtil.setMimickedBlock(pickBlock, getMimicBlock(world, pos));
 		return pickBlock;
 	}
 
-	private static IBlockState getPaintSource(@Nonnull IBlockAccess world, @Nonnull BlockPos pos) {
+	private static void setMimicBlock(@Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nullable IBlockState paintSource) {
+		final TileEntity te = world.getTileEntity(pos);
+		if (te instanceof IMimicTileEntity) {
+			((IMimicTileEntity) te).setCopiedBlock(paintSource);
+		}
+	}
+
+	private static IBlockState getMimicBlock(@Nonnull IBlockAccess world, @Nonnull BlockPos pos) {
 		final TileEntity te = world.getTileEntity(pos);
 		if (te instanceof IMimicTileEntity) {
 			return ((IMimicTileEntity) te).getCopiedBlock();

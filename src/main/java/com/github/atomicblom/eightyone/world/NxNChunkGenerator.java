@@ -340,65 +340,48 @@ public class NxNChunkGenerator implements IChunkGenerator
 		private void MakeRooms()
 		{
 			roomSets.clear();
-			RoomSet e;
-
-//			e = new RoomSet();
-//			e.presentRooms = new boolean[] {
-//					true, false, false,
-//					false, false, false,
-//					false, false, false
-//			};
-//			roomSets.add(e);
-
-			e = new RoomSet();
-			e.presentRooms = new int[] {
-					1, 1, 1, 0, 1,
-					0, 0, 1, 0, 0,
-					0, 0, 1, 0, 0,
-					0, 0, 1, 1, 1,
-					0, 0, 0, 0, 1
-			};
-			roomSets.add(e);
-
-			e = new RoomSet();
-			e.presentRooms = new int[] {
-					1, 1, 0, 0, 1,
-					0, 1, 0, 0, 1,
-					0, 1, 1, 1, 1,
-					0, 0, 1, 0, 0,
-					0, 0, 1, 1, 1,
-			};
-			roomSets.add(e);
-
-			e = new RoomSet();
-			e.presentRooms = new int[] {
-					1, 1, 1, 0, 0,
-					0, 1, 0, 0, 0,
-					0, 1, 0, 0, 0,
-					1, 1, 1, 1, 0,
-					1, 0, 0, 0, 0
-			};
-			roomSets.add(e);
-
-			e = new RoomSet();
-			e.presentRooms = new int[] {
-					1, 1, 0, 1, 1,
-					0, 1, 0, 1, 0,
-					0, 1, 1, 1, 0,
-					0, 0, 0, 1, 0,
-					0, 0, 0, 1, 1
-			};
-			roomSets.add(e);
-
-			e = new RoomSet();
-			e.presentRooms = new int[] {
-					1, 1, 0, 0, 1,
-					0, 1, 0, 0, 1,
-					0, 1, 1, 0, 0,
-					0, 1, 0, 0, 0,
-					1, 1, 0, 0, 0
-			};
-			roomSets.add(e);
+			roomSets.add(new RoomSet(null,
+					"11101",
+					"00100",
+					"00100",
+					"00111",
+					"00001"
+			));
+			roomSets.add(new RoomSet(null,
+					"11001",
+					"01001",
+					"01111",
+					"00100",
+					"00111"
+			));
+			roomSets.add(new RoomSet(null,
+					"11100",
+					"01000",
+					"01000",
+					"11110",
+					"10000"
+			));
+			roomSets.add(new RoomSet(null,
+					"11011",
+					"01010",
+					"01110",
+					"00010",
+					"00011"
+			));
+			roomSets.add(new RoomSet(null,
+					"11001",
+					"01001",
+					"01100",
+					"01000",
+					"11000"
+			));
+			roomSets.add(new RoomSet(null,
+					"11100",
+					"00100",
+					"11111",
+					"00100",
+					"11100"
+			));
 		}
 
 		@Override
@@ -446,6 +429,19 @@ public class NxNChunkGenerator implements IChunkGenerator
 
 	private class RoomSet {
 		int[] presentRooms = new int[ROOM_SET_SIZE * ROOM_SET_SIZE];
+
+		public RoomSet(String... roomDefinition) {
+			int z = 0;
+			for (int i = 0; i < roomDefinition.length; i++) {
+				if (roomDefinition[i] == null || roomDefinition[i].length() == 0) continue;
+
+				char[] chars = roomDefinition[i].toCharArray();
+				for (int x = 0; x < chars.length; x++) {
+					presentRooms[z * ROOM_SET_SIZE + x] = chars[x] != '0' ? 1 : 0;
+				}
+				z++;
+			}
+		}
 
 		public boolean isPresent(int x, int z)
 		{

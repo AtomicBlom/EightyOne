@@ -77,6 +77,15 @@ public class ClientRegistrationEvents
 			MimicBakedModel customModel = new MimicBakedModel(existingModel);
 			modelRegistry.putObject(mimicTag, customModel);
 		}
+
+		ModelResourceLocation inventoryTag = new ModelResourceLocation(resourceLocation, "inventory");
+
+		object =  modelRegistry.getObject(inventoryTag);
+		if (object instanceof IBakedModel) {
+			IBakedModel existingModel = (IBakedModel)object;
+			MimicBakedModel customModel = new MimicBakedModel(existingModel);
+			modelRegistry.putObject(inventoryTag, customModel);
+		}
 	}
 
 	@SubscribeEvent
