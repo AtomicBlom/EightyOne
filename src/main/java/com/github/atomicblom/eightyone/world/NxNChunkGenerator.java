@@ -20,12 +20,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
+import net.minecraft.world.storage.WorldInfo;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
@@ -250,12 +252,16 @@ public class NxNChunkGenerator implements IChunkGenerator
 
 				if (template != null)
 				{
+					final WorldInfo worldInfo = world.getWorldInfo();
+					WorldType previousType = worldInfo.getTerrainType();
+					//Hack the world type to avoid neighbour updates.
+					worldInfo.setTerrainType(WorldType.DEBUG_ALL_BLOCK_STATES);
 					final BlockPos blockPos = new BlockPos(room.getX(), BASE_HEIGHT, room.getZ());
 					template.addBlocksToWorldChunk(
 							world,
 							blockPos,
 							placementSettings);
-
+					worldInfo.setTerrainType(previousType);
 //					final BlockPos sheepPos = blockPos.add(4, template.getTemplate().getHeight(), 4);
 //					final List<EntitySheep> entitiesWithinAABB = world.getEntitiesWithinAABB(EntitySheep.class, new AxisAlignedBB(sheepPos));
 //					if (entitiesWithinAABB.isEmpty())
