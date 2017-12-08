@@ -172,17 +172,10 @@ public final class TemplateManager
 	}
 
 	public static NxNTemplate getTemplateByName(ResourceLocation filename) {
-		//try
-		//{
-			return TemplateCache.get(filename);
-
-		//} catch (final ExecutionException ignored)
-		//{
-		//	return null;
-		//}
+		return TemplateCache.get(filename);
 	}
 
-	public static RoomTemplate getTemplateByChance(TemplateCharacteristics roomCharacteristics, double templateChance)
+	public static RoomTemplate getTemplateByChance(TemplateCharacteristics roomCharacteristics, double templateChance, RoomPurpose purpose)
 	{
 		final List<RoomTemplate> validStructures = Lists.newArrayList();
 		final Shape roomShape = roomCharacteristics.getShape();
@@ -194,26 +187,23 @@ public final class TemplateManager
 
 		for (final ResourceLocation structureName : spawnableStructureNames)
 		{
-			//try
-			//{
-				final NxNTemplate template = TemplateCache.get(structureName);
-				final TemplateCharacteristics characteristics = template.getCharacteristics();
+			final NxNTemplate template = TemplateCache.get(structureName);
 
-				if (characteristics.getShape() == roomShape) {
-					final List<Rotation> templateRotations = Lists.newArrayList(characteristics.getTemplateRotations());
-					final Rotation templateRotation =
-							templateRotations.isEmpty() ? Rotation.NONE :
-							templateRotations.get((int)(templateRotations.size() * Math.abs(templateChance)));
+			if (template.getPurpose() != purpose) continue;
 
-					final Rotation rotationToApply = getRotationToApply(templateRotation, roomRotation);
+			final TemplateCharacteristics characteristics = template.getCharacteristics();
 
-					final RoomTemplate roomTemplate = new RoomTemplate(structureName, template, rotationToApply, Mirror.NONE);
-					validStructures.add(roomTemplate);
-				}
-//			} catch (final ExecutionException ignored)
-//			{
-//				return null;
-//			}
+			if (characteristics.getShape() == roomShape) {
+				final List<Rotation> templateRotations = Lists.newArrayList(characteristics.getTemplateRotations());
+				final Rotation templateRotation =
+						templateRotations.isEmpty() ? Rotation.NONE :
+						templateRotations.get((int)(templateRotations.size() * Math.abs(templateChance)));
+
+				final Rotation rotationToApply = getRotationToApply(templateRotation, roomRotation);
+
+				final RoomTemplate roomTemplate = new RoomTemplate(structureName, template, rotationToApply, Mirror.NONE);
+				validStructures.add(roomTemplate);
+			}
 		}
 
 		if (validStructures.isEmpty()) {

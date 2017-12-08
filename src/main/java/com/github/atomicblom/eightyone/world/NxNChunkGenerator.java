@@ -1,20 +1,24 @@
 package com.github.atomicblom.eightyone.world;
 
+import com.github.atomicblom.eightyone.Logger;
+import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.Point2D;
-import com.github.atomicblom.eightyone.world.structure.NxNTemplate;
-import com.github.atomicblom.eightyone.world.structure.RoomTemplate;
-import com.github.atomicblom.eightyone.world.structure.TemplateManager;
+import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
+import com.github.atomicblom.eightyone.world.structure.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import javafx.scene.input.ScrollEvent;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
@@ -66,13 +70,36 @@ public class NxNChunkGenerator implements IChunkGenerator
 	{
 		rand.setSeed(x * 0x4f9939f508L + z * 0x1ef1565bd5L);
 		final ChunkPrimer primer = new ChunkPrimer();
-
-		generateChunk(x, z, primer);
+		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
+		generateChunk(x, z, primer, tileEntitiesToAdd);
 
 		final Chunk chunk = new Chunk(world, primer, x, z);
+		for (final TileEntity tileEntity : tileEntitiesToAdd)
+		{
+			if (tileEntity instanceof TileEntityDungeonBlock)
+			{
+				chunk.addTileEntity(tileEntity);
+			}
+		}
 
 		chunk.generateSkylightMap();
 		return chunk;
+	}
+
+	@Override
+	public void populate(int x, int z)
+	{
+		final ChunkPrimer primer = new ChunkPrimer();
+		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
+		generateChunk(x, z, null, tileEntitiesToAdd);
+
+		for (final TileEntity tileEntity : tileEntitiesToAdd)
+		{
+			if (!(tileEntity instanceof TileEntityDungeonBlock))
+			{
+				world.addTileEntity(tileEntity);
+			}
+		}
 	}
 
 	public Room getRoomAt(int x, int z) {
@@ -89,74 +116,16 @@ public class NxNChunkGenerator implements IChunkGenerator
 		}
 	}
 
-	private void generateChunk(int chunkX, int chunkZ, ChunkPrimer primer)
+	private void generateChunk(int chunkX, int chunkZ, @Nullable ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd)
 	{
-		final boolean renderRoof = true;
-		final int height = 6;
-		final int posX = chunkX << 4;
-		final int posZ = chunkZ << 4;
-
-		for (int z = 0; z < 16; ++z)
-		{
-			for (int x = 0; x < 16; ++x)
-			{
-				final Room room = getRoomAt(posX + x, posZ + z);
-				if (!room.isPresent()) continue;
-
-				//final RoomTemplate template;
-				//template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
-				final RoomTemplate template = room.getTemplate();
-				if (template != null && template.getTemplate().isCustomRoom()) continue;
-
-				if (room.contains(posX + x, posZ + z))
-				{
-					primer.setBlockState(x, BASE_HEIGHT, z, Blocks.COBBLESTONE.getDefaultState());
-
-					final int xOffset = room.getXOffset(posX + x);
-					final int zOffset = room.getZOffset(posZ + z);
-
-					final int roomHeight = BASE_HEIGHT + template.getTemplate().getHeight() + 1;
-					if (renderRoof)
-					{
-						if ((xOffset == 2 || xOffset == 3 || xOffset == 5 || xOffset == 6) &&
-								(zOffset == 2 || zOffset == 3 || zOffset == 5 || zOffset == 6))
-						{
-							primer.setBlockState(x, roomHeight, z, Blocks.GLASS.getDefaultState());
-						} else
-						{
-							primer.setBlockState(x, roomHeight, z, Blocks.COBBLESTONE.getDefaultState());
-						}
-					}
-
-					if (room.isWall(posX + x, posZ + z))
-					{
-						for (int y = BASE_HEIGHT; y < roomHeight; ++y)
-						{
-							primer.setBlockState(x, y, z, Blocks.COBBLESTONE.getDefaultState());
-						}
-					}
-				}
-			}
-		}
-	}
-
-	@Override
-	public void populate(int chunkX, int chunkZ)
-	{
-
-		final PlacementSettings placementSettings = new PlacementSettings();
-		placementSettings.setChunk(new ChunkPos(chunkX, chunkZ));
-
-		BlockFalling.fallInstantly = false;
+		List<Rotation> horizontalRotations = Lists.newArrayList(Rotation.CLOCKWISE_90);
+		List<Rotation> verticalRotations = Lists.newArrayList(Rotation.NONE);
 
 		final int chunkCornerX  = chunkX << 4;
 		final int chunkCornerZ  = chunkZ << 4;
 
 		final int nextChunkX = chunkCornerX + 15;
 		final int nextChunkZ = chunkCornerZ + 15;
-
-		final IBlockState dirt = Blocks.DIRT.getDefaultState();
-		final IBlockState air = Blocks.AIR.getDefaultState();
 
 		final Room cornerRoom = getRoomAt(chunkCornerX - 10, chunkCornerZ - 10);
 		for (int roomX = cornerRoom.getX(); roomX < nextChunkX + 10; roomX += 10) {
@@ -166,125 +135,41 @@ public class NxNChunkGenerator implements IChunkGenerator
 
 				if (!room.isPresent()) continue;
 
-				if (room.isDoorwayPresent(EnumFacing.SOUTH)) {
-					//Generate Vertical exit
-
-					final int xPos = room.getX() + 4;
-					final int zPos = room.getZ() + 8;
-					final MutableBlockPos pos = new MutableBlockPos(xPos, BASE_HEIGHT + 7, zPos);
-
-					for (int i = zPos; i < room.getZ() + 8 + 3; ++i) {
-						for (int y = BASE_HEIGHT; y < BASE_HEIGHT + 4; ++y) {
-							pos.setPos(xPos - 2, y, i);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-							pos.setPos(xPos + 2, y, i);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						}
-
-						pos.setPos(xPos - 1, BASE_HEIGHT, i);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(xPos, BASE_HEIGHT, i);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(xPos + 1, BASE_HEIGHT, i);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-
-						pos.setPos(xPos - 1, BASE_HEIGHT + 4, i);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(xPos, BASE_HEIGHT + 4, i);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(xPos + 1, BASE_HEIGHT + 4, i);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-
-						for (int y = BASE_HEIGHT + 1; y < BASE_HEIGHT + 4; ++y) {
-							pos.setPos(xPos - 1, y, i);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, air);
-							pos.setPos(xPos + 1, y, i);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, air);
-							pos.setPos(xPos, y, i);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, air);
-						}
-					}
-
-				}
-				if (room.isDoorwayPresent(EnumFacing.EAST)) {
-					//Generate
-
-					final int xPos = room.getX() + 8;
-					final int zPos = room.getZ() + 4;
-					final MutableBlockPos pos = new MutableBlockPos(xPos, BASE_HEIGHT + 7, zPos);
-
-					for (int i = xPos; i < room.getX() + 8 + 3; ++i) {
-						for (int z = BASE_HEIGHT; z < BASE_HEIGHT + 4; ++z) {
-							pos.setPos(i, z, zPos - 2);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-							pos.setPos(i, z, zPos + 2);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						}
-
-
-						pos.setPos(i, BASE_HEIGHT, zPos - 1);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(i, BASE_HEIGHT, zPos);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(i, BASE_HEIGHT, zPos + 1);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-
-						pos.setPos(i, BASE_HEIGHT + 4, zPos - 1);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(i, BASE_HEIGHT + 4, zPos);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-						pos.setPos(i, BASE_HEIGHT + 4, zPos + 1);
-						placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, dirt);
-
-						for (int z = BASE_HEIGHT + 1; z < BASE_HEIGHT + 4; ++z) {
-							pos.setPos(i, z, zPos - 1);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, air);
-							pos.setPos(i, z, zPos + 1);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, air);
-							pos.setPos(i, z, zPos);
-							placeBlockIfInChunk(chunkCornerX, chunkCornerZ, pos, air);
-						}
-					}
-				}
-
 				final RoomTemplate template = room.getTemplate();
-				//template = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
-
-				if (template != null)
+				if (template != null && template.getTemplate().isCustomRoom())
 				{
-					final WorldInfo worldInfo = world.getWorldInfo();
-					WorldType previousType = worldInfo.getTerrainType();
-					//Hack the world type to avoid neighbour updates.
-					worldInfo.setTerrainType(WorldType.DEBUG_ALL_BLOCK_STATES);
-					final BlockPos blockPos = new BlockPos(room.getX(), BASE_HEIGHT, room.getZ());
-					template.addBlocksToWorldChunk(
-							world,
-							blockPos,
-							placementSettings);
-					worldInfo.setTerrainType(previousType);
-//					final BlockPos sheepPos = blockPos.add(4, template.getTemplate().getHeight(), 4);
-//					final List<EntitySheep> entitiesWithinAABB = world.getEntitiesWithinAABB(EntitySheep.class, new AxisAlignedBB(sheepPos));
-//					if (entitiesWithinAABB.isEmpty())
-//					{
-//						//Uncomment this to spawn sheep with labels at a specific point for debugging purposes
-//
-//						final BlockPos blockpos = sheepPos;
-//						final EntitySheep sheep = new EntitySheep(world);
-//						sheep.setCustomNameTag(template.getTemplate().getResourceLocation().toString());
-//						sheep.setNoAI(true);
-//						sheep.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0, 0);
-//						sheep.setEntityInvulnerable(true);
-//						sheep.setInvisible(true);
-//						sheep.setAlwaysRenderNameTag(true);
-//						sheep.setSilent(true);
-//						sheep.setNoGravity(true);
-//						world.spawnEntity(sheep);
-//					}
+					final PlacementSettings placementIn = new PlacementSettings();
+					placementIn.setChunk(new ChunkPos(chunkX, chunkZ));
+
+					final BlockPos templatePosition = new BlockPos(room.getX(), BASE_HEIGHT, room.getZ());
+					template.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, world, templatePosition, placementIn);
+
+					if (room.isDoorwayPresent(EnumFacing.SOUTH)) {
+						final RoomTemplate southPassageTemplate = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.Closed, horizontalRotations), room.getTemplateChance(), RoomPurpose.PASSAGE);
+						if (southPassageTemplate != null)
+						{
+							final BlockPos passagePosition = templatePosition.add(2, 0, 7);
+
+							southPassageTemplate.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, world, passagePosition, placementIn);
+						} else {
+							Logger.severe("Could not create doorway, passage not found");
+						}
+					}
+
+					if (room.isDoorwayPresent(EnumFacing.EAST)) {
+						final RoomTemplate southPassageTemplate = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.Closed, verticalRotations), room.getTemplateChance(), RoomPurpose.PASSAGE);
+						if (southPassageTemplate != null)
+						{
+							final BlockPos passagePosition = templatePosition.add(5, 0, 0);
+
+							southPassageTemplate.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, world, passagePosition, placementIn);
+						} else {
+							Logger.severe("Could not create doorway, passage not found");
+						}
+					}
 				}
 			}
 		}
-
-		BlockFalling.fallInstantly = false;
 	}
 
 	private void placeBlockIfInChunk(int chunkCornerX, int chunkCornerZ, BlockPos pos, IBlockState blockState)
@@ -407,7 +292,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 			if (roomPresent)
 			{
 				final RoomTemplate roomTemplate;
-				roomTemplate = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance());
+				roomTemplate = TemplateManager.getTemplateByChance(room.getCharacteristics(), room.getTemplateChance(), RoomPurpose.ROOM);
 				if (roomTemplate == null) {
 					room.setPresent(false);
 				} else {

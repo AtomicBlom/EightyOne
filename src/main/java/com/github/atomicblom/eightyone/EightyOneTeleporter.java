@@ -1,11 +1,12 @@
 package com.github.atomicblom.eightyone;
 
 import com.github.atomicblom.eightyone.util.SpiralIterable;
+import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
 import com.github.atomicblom.eightyone.world.NxNChunkGenerator;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
 import com.github.atomicblom.eightyone.world.Room;
-import com.github.atomicblom.eightyone.world.structure.NxNTemplate;
-import com.github.atomicblom.eightyone.world.structure.TemplateManager;
+import com.github.atomicblom.eightyone.world.structure.*;
+import com.google.common.collect.Iterables;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,6 +23,7 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
+import java.util.Arrays;
 
 public class EightyOneTeleporter extends Teleporter {
     public static EightyOneTeleporter getTeleporterForDim(MinecraftServer server, int dim) {
@@ -78,9 +80,14 @@ public class EightyOneTeleporter extends Teleporter {
 		Logger.info("renderPortalToWorld: %s fillUnderneath: %s", blockPos, fillUnderneath);
 		ResourceLocation templateName = fillUnderneath ? new ResourceLocation(Reference.MOD_ID, "portal_overworld")
 				:new ResourceLocation(Reference.MOD_ID, "portal");
-		final NxNTemplate spawn = TemplateManager.getTemplateByName(templateName);
+		//final NxNTemplate spawn = TemplateManager.getTemplateByName(templateName);
+	    double chance = world.rand.nextDouble();
+	    final RoomTemplate spawn = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.Closed, Arrays.asList(net.minecraft.util.Rotation.values())), chance, RoomPurpose.PORTAL);
         final PlacementSettings placementSettings = new PlacementSettings();
-        final Template template = spawn;
+        if (spawn == null) {
+        	Logger.severe("Could not load portal template!");
+        }
+        final NxNTemplate template = spawn.getTemplate();
         template.addBlocksToWorld(world, blockPos, placementSettings);
 
         if (fillUnderneath)
