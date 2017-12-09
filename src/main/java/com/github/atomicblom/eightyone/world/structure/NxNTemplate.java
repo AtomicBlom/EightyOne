@@ -4,20 +4,20 @@ import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
 import net.minecraft.block.Block;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
-import net.minecraft.world.gen.structure.template.ITemplateProcessor;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
-import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -28,6 +28,7 @@ public class NxNTemplate extends Template
 	private boolean spawnable = true;
 	private TemplateCharacteristics characteristics;
 	private ResourceLocation resourceLocation;
+	private RoomPurpose purpose = RoomPurpose.ROOM;
 
 	public NxNTemplate(ResourceLocation resourceLocation) {
 		characteristics = EntranceHelper.calculateCharacteristics(openEntrances);
@@ -74,8 +75,10 @@ public class NxNTemplate extends Template
 	{
 		super.read(compound);
 
-		boolean setYOffsetFromDoorway = true;
+		boolean setYOffsetFromDoorway = false;
+		boolean setYOffsetFromPurpose = false;
 		int doorwayYOffset = 0;
+		int purposeYOffset = 0;
 		int yOffset = 0;
 
 		final PlacementSettings placementSettings = new PlacementSettings();
@@ -85,6 +88,8 @@ public class NxNTemplate extends Template
 			final BlockPos location = dataBlock.getKey();
 			if (dataValue.startsWith("doorway")) {
 				doorwayYOffset = -location.getY();
+				setYOffsetFromDoorway = true;
+
 				final EnumFacing quadrant = getQuadrant(location, getSize().getZ());
 				if (quadrant == null) {
 					Logger.warning("    It looks like a structure has an doorway placed on a diagonal. This is not supported, location %s", location);
@@ -98,13 +103,26 @@ public class NxNTemplate extends Template
 			} else if (dataValue.startsWith("y_offset:")) {
 				yOffset = Integer.getInteger(dataValue.substring("y_offset:".length()).trim());
 				setYOffsetFromDoorway = false;
+			} else if (dataValue.startsWith("purpose:")) {
+				try
+				{
+					purpose = RoomPurpose.valueOf(dataValue.substring("purpose:".length()).trim().toUpperCase());
+					purposeYOffset = -location.getY();
+					setYOffsetFromPurpose = true;
+				} catch (Exception e) {
+
+				}
 			}
 		}
 
 		if (setYOffsetFromDoorway) {
 
 			this.yOffset = doorwayYOffset;
-			Logger.info("    yOffset has been set to %d because of doorways (or lack there of)", this.yOffset);
+			Logger.info("    yOffset has been set to %d because of doorways", this.yOffset);
+		}
+		else if (setYOffsetFromPurpose) {
+			this.yOffset = purposeYOffset;
+			Logger.info("    yOffset has been set to %d because of purpose", this.yOffset);
 		}
 		else {
 			this.yOffset = yOffset;
@@ -152,93 +170,53 @@ public class NxNTemplate extends Template
 	 *
 	 * @param worldIn The world to use
 	 * @param pos The origin position for the structure
-	 * @param templateProcessor The template processor to use
 	 * @param placementIn Placement settings to use
-	 * @param flags Flags to pass to {@link World#setBlockState(BlockPos, IBlockState, int)}
 	 */
-	public void addBlocksToWorld(World worldIn, BlockPos pos, @Nullable ITemplateProcessor templateProcessor, PlacementSettings placementIn, int flags)
+	public void addBlocksToWorld(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, World world, BlockPos pos, PlacementSettings placementIn)
 	{
-		BlockPos size = this.getSize();
+		placementIn.setBoundingBoxFromChunk();
 
-		if ((!this.blocks.isEmpty() || !placementIn.getIgnoreEntities() && !this.entities.isEmpty()) && size.getX() >= 1 && size.getY() >= 1 && size.getZ() >= 1)
+		if (!blocks.isEmpty() && size.getX() >= 1 && size.getY() >= 1 && size.getZ() >= 1)
 		{
-			Block block = placementIn.getReplacedBlock();
-			StructureBoundingBox structureboundingbox = placementIn.getBoundingBox();
+			final Block block = placementIn.getReplacedBlock();
+			final StructureBoundingBox structureboundingbox = placementIn.getBoundingBox();
 
-			for (Template.BlockInfo templateBlockInfo : this.blocks)
+			for (final BlockInfo templateBlockInfo : blocks)
 			{
-				BlockPos blockpos = transformedBlockPos(placementIn, templateBlockInfo.pos).add(pos);
-				Template.BlockInfo processedBlockInfo = templateProcessor != null ? templateProcessor.processBlock(worldIn, blockpos, templateBlockInfo) : templateBlockInfo;
+				final BlockPos blockpos = transformedBlockPos(placementIn, templateBlockInfo.pos).add(pos);
 
-				if (processedBlockInfo != null)
+				final Block processedBlock = templateBlockInfo.blockState.getBlock();
+
+				if ((block == null || block != processedBlock) && (!placementIn.getIgnoreStructureBlock() || processedBlock != Blocks.STRUCTURE_BLOCK) && (structureboundingbox == null || structureboundingbox.isVecInside(blockpos)))
 				{
-					Block processedBlock = processedBlockInfo.blockState.getBlock();
+					final IBlockState mirrorState = templateBlockInfo.blockState.withMirror(placementIn.getMirror());
+					final IBlockState finalState = mirrorState.withRotation(placementIn.getRotation());
 
-					if ((block == null || block != processedBlock) && (!placementIn.getIgnoreStructureBlock() || processedBlock != Blocks.STRUCTURE_BLOCK) && (structureboundingbox == null || structureboundingbox.isVecInside(blockpos)))
+					if (primer != null)
 					{
-						IBlockState mirrorState = processedBlockInfo.blockState.withMirror(placementIn.getMirror());
-						IBlockState finalState = mirrorState.withRotation(placementIn.getRotation());
+						primer.setBlockState(blockpos.getX() & 15, blockpos.getY(), blockpos.getZ() & 15, finalState);
+					}
 
-						if (processedBlockInfo.tileentityData != null)
-						{
-							TileEntity tileentity = worldIn.getTileEntity(blockpos);
+					if (templateBlockInfo.tileentityData != null && processedBlock instanceof ITileEntityProvider) {
 
-							if (tileentity != null)
-							{
-								if (tileentity instanceof IInventory)
-								{
-									((IInventory)tileentity).clear();
-								}
-
-								worldIn.setBlockState(blockpos, Blocks.BARRIER.getDefaultState(), 4);
-							}
-						}
-
-						if (worldIn.setBlockState(blockpos, finalState, flags) && processedBlockInfo.tileentityData != null)
-						{
-							TileEntity tileentity = worldIn.getTileEntity(blockpos);
-
-							if (tileentity != null)
-							{
-								processedBlockInfo.tileentityData.setInteger("x", blockpos.getX());
-								processedBlockInfo.tileentityData.setInteger("y", blockpos.getY());
-								processedBlockInfo.tileentityData.setInteger("z", blockpos.getZ());
-								tileentity.readFromNBT(processedBlockInfo.tileentityData);
-								tileentity.mirror(placementIn.getMirror());
-								tileentity.rotate(placementIn.getRotation());
-							}
+						final TileEntity tileEntity = ((ITileEntityProvider) processedBlock).createNewTileEntity(world, processedBlock.getMetaFromState(finalState));
+						if (tileEntity != null) {
+							templateBlockInfo.tileentityData.setInteger("x", blockpos.getX());
+							templateBlockInfo.tileentityData.setInteger("y", blockpos.getY());
+							templateBlockInfo.tileentityData.setInteger("z", blockpos.getZ());
+							tileEntity.readFromNBT(templateBlockInfo.tileentityData);
+							tileEntity.mirror(placementIn.getMirror());
+							tileEntity.rotate(placementIn.getRotation());
+							tileEntitiesToAdd.add(tileEntity);
 						}
 					}
 				}
-			}
-
-			for (Template.BlockInfo blockInfo : this.blocks)
-			{
-				if (block == null || block != blockInfo.blockState.getBlock())
-				{
-					BlockPos blockpos1 = transformedBlockPos(placementIn, blockInfo.pos).add(pos);
-
-					if (structureboundingbox == null || structureboundingbox.isVecInside(blockpos1))
-					{
-						//worldIn.notifyNeighborsRespectDebug(blockpos1, blockInfo.blockState.getBlock(), false);
-
-						if (blockInfo.tileentityData != null)
-						{
-							TileEntity tileentity1 = worldIn.getTileEntity(blockpos1);
-
-							if (tileentity1 != null)
-							{
-								//ileentity1.markDirty();
-							}
-						}
-					}
-				}
-			}
-
-			if (!placementIn.getIgnoreEntities())
-			{
-				this.addEntitiesToWorld(worldIn, pos, placementIn.getMirror(), placementIn.getRotation(), structureboundingbox);
 			}
 		}
+	}
+
+	public RoomPurpose getPurpose()
+	{
+		return purpose;
 	}
 }

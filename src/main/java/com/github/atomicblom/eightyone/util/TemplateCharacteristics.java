@@ -10,7 +10,6 @@ public class TemplateCharacteristics
 
 	public TemplateCharacteristics(Shape shape, Iterable<Rotation> templateRotations)
 	{
-
 		this.shape = shape;
 		this.templateRotations = templateRotations;
 	}
