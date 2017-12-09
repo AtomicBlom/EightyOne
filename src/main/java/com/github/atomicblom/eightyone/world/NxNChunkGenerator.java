@@ -172,19 +172,6 @@ public class NxNChunkGenerator implements IChunkGenerator
 		}
 	}
 
-	private void placeBlockIfInChunk(int chunkCornerX, int chunkCornerZ, BlockPos pos, IBlockState blockState)
-	{
-		final int nextChunkX = chunkCornerX + 16;
-		if (pos.getX() >= chunkCornerX && pos.getX() < nextChunkX)
-		{
-			final int nextChunkZ = chunkCornerZ + 16;
-			if (pos.getZ() >= chunkCornerZ && pos.getZ() < nextChunkZ)
-			{
-				world.setBlockState(pos, blockState, 16 | 2);
-			}
-		}
-	}
-
 	@Override
 	public boolean generateStructures(Chunk chunkIn, int x, int z)
 	{
@@ -194,7 +181,8 @@ public class NxNChunkGenerator implements IChunkGenerator
 	@Override
 	public List<Biome.SpawnListEntry> getPossibleCreatures(EnumCreatureType creatureType, BlockPos pos)
 	{
-		return Lists.newArrayList();
+		Biome biome = world.getBiome(pos);
+		return biome.getSpawnableList(creatureType);
 	}
 
 	@Nullable
