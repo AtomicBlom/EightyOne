@@ -8,6 +8,7 @@ import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -36,16 +37,55 @@ import java.util.List;
 
 public class SecretBlock extends Block implements ITileEntityProvider
 {
+//	public SecretBlock()
+//	{
+//		super(new SecretMaterial());
+//
+//		//setBlockUnbreakable();
+//
+//
+//	}
+
 	public SecretBlock()
 	{
-		super(new SecretMaterial());
+		super(Material.AIR);
 		setSoundType(SoundType.STONE);
-		setBlockUnbreakable();
 		setResistance(6000000.0F);
-		setUnlocalizedName("bedrock");
 		disableStats();
 		setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
 		setDefaultState(getDefaultState().withProperty(Reference.Blocks.OVERLAY, false));
+	}
+
+	@Override
+	public boolean isCollidable()
+	{
+		return false;
+	}
+
+	@Nullable
+	@Override
+	@Deprecated
+	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos)
+	{
+		return Block.NULL_AABB;
+	}
+
+	@Override
+	@Deprecated
+	public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean p_185477_7_) {
+		super.addCollisionBoxToList(state, worldIn, pos, entityBox, collidingBoxes, entityIn, p_185477_7_);
+	}
+
+	@Override
+	public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos)
+	{
+		return true;
+	}
+
+	@Override
+	public int getLightOpacity(IBlockState state, IBlockAccess world, BlockPos pos)
+	{
+		return 0;
 	}
 
 	@Override
@@ -73,31 +113,6 @@ public class SecretBlock extends Block implements ITileEntityProvider
 	@Override
 	public boolean canRenderInLayer(@Nonnull IBlockState state, @Nonnull BlockRenderLayer layer) {
 		return true;
-	}
-
-	@Override
-	public boolean isCollidable()
-	{
-		return false;
-	}
-
-	@Nullable
-	@Override
-	@Deprecated
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos)
-	{
-		return Block.NULL_AABB;
-	}
-
-	@Override
-	@Deprecated
-	public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean p_185477_7_) {
-		super.addCollisionBoxToList(state, worldIn, pos, entityBox, collidingBoxes, entityIn, p_185477_7_);
-	}
-
-	public boolean canCollideCheck(IBlockState state, boolean hitIfLiquid)
-	{
-		return false;
 	}
 
 	@Override
