@@ -109,8 +109,9 @@ public class NxNTemplate extends Template
 					purpose = RoomPurpose.valueOf(dataValue.substring("purpose:".length()).trim().toUpperCase());
 					purposeYOffset = -location.getY();
 					setYOffsetFromPurpose = true;
+					Logger.info("    data block at location %s set the purpose of the template to ", location, purpose);
 				} catch (Exception e) {
-
+					Logger.severe("Could not parse purpose data block");
 				}
 			}
 		}

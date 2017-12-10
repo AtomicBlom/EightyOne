@@ -76,10 +76,10 @@ public class NxNChunkGenerator implements IChunkGenerator
 		final Chunk chunk = new Chunk(world, primer, x, z);
 		for (final TileEntity tileEntity : tileEntitiesToAdd)
 		{
-			if (tileEntity instanceof TileEntityDungeonBlock)
-			{
+			//if (tileEntity instanceof TileEntityDungeonBlock)
+			//{
 				chunk.addTileEntity(tileEntity);
-			}
+			//}
 		}
 
 		chunk.generateSkylightMap();
@@ -89,7 +89,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 	@Override
 	public void populate(int x, int z)
 	{
-		final ChunkPrimer primer = new ChunkPrimer();
+		/*Chunk chunk = world.getChunkFromChunkCoords(x, z);
 		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
 		generateChunk(x, z, null, tileEntitiesToAdd);
 
@@ -97,9 +97,9 @@ public class NxNChunkGenerator implements IChunkGenerator
 		{
 			if (!(tileEntity instanceof TileEntityDungeonBlock))
 			{
-				world.addTileEntity(tileEntity);
+				chunk.addTileEntity(tileEntity);
 			}
-		}
+		}*/
 	}
 
 	public Room getRoomAt(int x, int z) {

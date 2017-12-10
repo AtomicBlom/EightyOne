@@ -82,7 +82,7 @@ public class EightyOneTeleporter extends Teleporter {
 				:new ResourceLocation(Reference.MOD_ID, "portal");
 		//final NxNTemplate spawn = TemplateManager.getTemplateByName(templateName);
 	    double chance = world.rand.nextDouble();
-	    final RoomTemplate spawn = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.Closed, Arrays.asList(net.minecraft.util.Rotation.values())), chance, RoomPurpose.PORTAL);
+	    final RoomTemplate spawn = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.DeadEnd, Arrays.asList(net.minecraft.util.Rotation.values())), chance, RoomPurpose.PORTAL);
         final PlacementSettings placementSettings = new PlacementSettings();
         if (spawn == null) {
         	Logger.severe("Could not load portal template!");
