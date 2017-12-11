@@ -2,6 +2,7 @@ package com.github.atomicblom.eightyone.world.structure;
 
 import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
+import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
 import net.minecraft.block.Block;
@@ -10,7 +11,10 @@ import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
@@ -21,6 +25,7 @@ import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,6 +39,8 @@ public class NxNTemplate extends Template
 	private TemplateCharacteristics characteristics;
 	private ResourceLocation resourceLocation;
 	private RoomPurpose purpose = RoomPurpose.ROOM;
+
+	private NBTTagCompound sourceTagCompound;
 
 	public NxNTemplate(ResourceLocation resourceLocation) {
 		characteristics = EntranceHelper.calculateCharacteristics(openEntrances);
@@ -69,6 +76,45 @@ public class NxNTemplate extends Template
 		return spawnable;
 	}
 
+	public boolean areBlocksAvailable()
+	{
+		final NBTTagList palette = sourceTagCompound.getTagList("palette", 10);
+		for (int i = 0; i < palette.tagCount(); ++i)
+		{
+			final NBTTagCompound paletteEntry = palette.getCompoundTagAt(i);
+			//We're going to use minecraft air to detect blocks that can't be used, so we need to explicitly ok air here
+			if (paletteEntry.getString("Name") == "minecraft:air") continue;
+
+			final IBlockState iBlockState = NBTUtil.readBlockState(paletteEntry);
+			if (iBlockState == Blocks.AIR) {
+				Logger.warning("Cannot use structure " + resourceLocation + " because blockstate " + iBlockState + " is not present.");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	public NBTTagList getBlockStatePalette() {
+		final NBTTagList palette = sourceTagCompound.getTagList("palette", 10);
+
+		final String dungeonBlockRegistryName = Reference.Blocks.DUNGEON_BLOCK.toString();
+		final String secretBlockRegistryName = Reference.Blocks.SECRET_BLOCK.toString();
+
+		final NBTTagList returnedList = new NBTTagList();
+
+		for (int i = 0; i < palette.tagCount(); i++)
+		{
+			final NBTTagCompound blockStateNbt = palette.getCompoundTagAt(i);
+			final String name = blockStateNbt.getString("Name");
+			if (name.equals(dungeonBlockRegistryName) || name.equals(secretBlockRegistryName)) {
+				returnedList.appendTag(blockStateNbt.copy());
+			}
+		}
+
+		return returnedList;
+	}
+
 	@Override
 	public void addBlocksToWorld(World worldIn, BlockPos pos, PlacementSettings placementIn, int flags)
 	{
@@ -78,6 +124,8 @@ public class NxNTemplate extends Template
 	@Override
 	public void read(NBTTagCompound compound)
 	{
+		sourceTagCompound = compound;
+
 		super.read(compound);
 
 		boolean setYOffsetFromDoorway = false;
@@ -174,7 +222,6 @@ public class NxNTemplate extends Template
 	/**
 	 * Adds blocks and entities from this structure to the given world.
 	 *
-	 * @param worldIn The world to use
 	 * @param pos The origin position for the structure
 	 * @param placementIn Placement settings to use
 	 */
@@ -185,7 +232,7 @@ public class NxNTemplate extends Template
 		StructureBoundingBox boundingBox = placementIn.getBoundingBox();
 		rand.setSeed((boundingBox.minX >> 4) * 0x4f9939f508L + (boundingBox.minZ >> 4) * 0x1ef1565bd5L);
 
-		if (!blocks.isEmpty() && size.getX() >= 1 && size.getY() >= 1 && size.getZ() >= 1)
+		if (!isEmpty())
 		{
 			final Block block = placementIn.getReplacedBlock();
 			final StructureBoundingBox structureboundingbox = boundingBox;
@@ -224,6 +271,13 @@ public class NxNTemplate extends Template
 				}
 			}
 		}
+	}
+
+	private boolean isEmpty()
+	{
+		if (blocks.isEmpty()) return true;
+		if (size.getX() <= 0 || size.getY() <= 0 || size.getZ() <= 0) return true;
+		return false;
 	}
 
 	private BlockInfo getAlternateBlockInfo(BlockInfo templateBlockInfo, Random r) {

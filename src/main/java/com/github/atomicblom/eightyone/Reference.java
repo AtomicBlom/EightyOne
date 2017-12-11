@@ -1,9 +1,14 @@
 package com.github.atomicblom.eightyone;
 
 import com.github.atomicblom.eightyone.blocks.properties.MimicBlockProperty;
+import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.PropertyInteger;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.property.IUnlistedProperty;
+import net.minecraftforge.common.property.Properties;
 
 public final class Reference {
 	public static final String MOD_ID = "eightyone";
@@ -11,6 +16,7 @@ public final class Reference {
 	public static final String VERSION = "@MOD_VERSION@";
 
 	public static final int DIMENSION_ID = 81;
+	public static final String WORLD_NAME = "labyrinth";
 	public static BlockRenderLayer CURRENT_RENDER_LAYER;
 	public static ResourceLocation DUNGEON_RECIPE = resource("dungeon_recipe");
 
@@ -20,8 +26,9 @@ public final class Reference {
 		public static final ResourceLocation SECRET_BLOCK = resource("secret_block");
 		public static final ResourceLocation PLACEHOLDER_LOOT_CHEST = resource("placeholder_loot_chest");
 
-		public static final PropertyBool OVERLAY = PropertyBool.create("overlay");
-		public static final MimicBlockProperty MIMIC = new MimicBlockProperty();
+		public static final IProperty<Boolean> OVERLAY = PropertyBool.create("overlay");
+		public static final IUnlistedProperty<IBlockState> MIMIC = new MimicBlockProperty();
+		public static final IUnlistedProperty<Integer> VARIATION = Properties.toUnlisted(PropertyInteger.create("variation", 0, 15));
 	}
 
 	private Reference() {}

@@ -5,7 +5,9 @@ import com.github.atomicblom.eightyone.command.DescribeRoomCommand;
 import com.github.atomicblom.eightyone.command.ReloadRoomsCommand;
 import com.github.atomicblom.eightyone.registration.PacketHandler;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
+import com.github.atomicblom.eightyone.world.NxNWorldType;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
+import net.minecraft.world.WorldType;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -16,15 +18,17 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
-@Mod(modid = Reference.MOD_ID, name=Reference.MOD_NAME, version = Reference.VERSION, acceptedMinecraftVersions = "[1.12, 1.13)")
+@Mod(modid = Reference.MOD_ID, name=Reference.MOD_NAME, version = Reference.VERSION, acceptedMinecraftVersions = "[1.12.2, 1.13)")
 public class EightyOne
 {
     @Instance
     public static EightyOne instance;
+    private WorldType worldType;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         TemplateManager.setConfigurationDirectory(event.getModConfigurationDirectory());
+        TemplateManager.findTemplates(false);
         PacketHandler.registerMessages(Reference.MOD_ID);
     }
 
@@ -37,7 +41,8 @@ public class EightyOne
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        TemplateManager.getValidTemplates(false);
+        worldType = new NxNWorldType();
+        TemplateManager.catalogueValidStructures();
     }
 
     @EventHandler

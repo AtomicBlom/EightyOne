@@ -2,20 +2,10 @@ package com.github.atomicblom.eightyone.world.structure;
 
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.init.Blocks;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTUtil;
+import net.minecraft.nbt.*;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
@@ -31,33 +21,70 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Dictionary;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public final class TemplateManager
 {
-	//private static final LoadingCache<ResourceLocation, NxNTemplate> TemplateCache;
-	private static final Map<ResourceLocation, NxNTemplate> TemplateCache = new HashMap<>();
+	private static final Map<ResourceLocation, NxNTemplate> TemplateCache = Maps.newHashMap();
 	private static final Pattern PATH_SEPERATOR = Pattern.compile("\\\\");
 
-//	static {
-//		TemplateCache = CacheBuilder.newBuilder()
-//				.expireAfterAccess(10, TimeUnit.MINUTES)
-//				.maximumSize(1000)
-//				.build(new TemplateLoader());
-//	}
-
-	//private static Map<ResourceLocation, NxNTemplate> validStructures = Maps.newHashMap();
-	//private static List<ResourceLocation> validStructureNames = Lists.newArrayList();
 	private static final List<ResourceLocation> spawnableStructureNames = Lists.newArrayList();
-	private static File configurationDirectory;
+	private static File configurationDirectory = new File("./");
 
 	private TemplateManager() {}
+
+	public static void catalogueValidStructures()
+	{
+		Logger.info("Cataloging structures for The Labyrinth");
+		for (final NxNTemplate template : TemplateCache.values())
+		{
+			final ResourceLocation key = template.getResourceLocation();
+			if (!template.areBlocksAvailable()) {
+				Logger.info("    structure %s is not valid", key);
+			} else if (!template.isSpawnable())
+			{
+				Logger.info("    structure %s is valid, but it is not in the spawnable list", key);
+			} else
+			{
+				Logger.info("    structure %s is valid", key);
+				spawnableStructureNames.add(key);
+			}
+		}
+	}
+
+	public static Iterable<NBTTagCompound> catalogueMimicBlockStates() {
+		List<NBTTagCompound> uniqueStates = Lists.newArrayList();
+
+		for (final NxNTemplate template : TemplateCache.values())
+		{
+			final NBTTagList blockStatePalette = template.getBlockStatePalette();
+			for (int i = 0; i < blockStatePalette.tagCount(); i++)
+			{
+				uniqueStates.add(blockStatePalette.getCompoundTagAt(i));
+			}
+		}
+
+		return () -> uniqueStates.stream().filter(TemplateManager::distinctByKey).iterator();
+	}
+
+	public static Boolean distinctByKey(NBTTagCompound tagCompound) {
+		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
+		for (final NBTTagCompound existingTagCompound : seen)
+		{
+			if (NBTUtil.areNBTEquals(tagCompound, existingTagCompound, true)) {
+				return false;
+			}
+		}
+		seen.add(tagCompound);
+		return true;
+	}
 
 	private static class ConfigFileModContainer extends DummyModContainer {
 		@Override
@@ -79,16 +106,11 @@ public final class TemplateManager
 		}
 	}
 
-	public static void getValidTemplates(boolean readFromConfigDirectory) {
-		//final Map<ResourceLocation, NxNTemplate> validStructures = Maps.newHashMap();
-		//final List<ResourceLocation> validStructureNames = Lists.newArrayList();
-
+	public static void findTemplates(boolean readFromConfigDirectory) {
 		final Minecraft minecraft = Minecraft.getMinecraft();
 		final DataFixer dataFixer = minecraft.getDataFixer();
 
 		spawnableStructureNames.clear();
-		//TemplateCache.invalidateAll();
-		//TemplateCache.cleanUp();
 		TemplateCache.clear();
 
 		final List<ModContainer> activeModList = Lists.newArrayList(Loader.instance().getActiveModList());
@@ -99,7 +121,9 @@ public final class TemplateManager
 			final File nxnstructures = new File(configurationDirectory, "nxnstructures");
 			if (!nxnstructures.exists())
 			{
-				nxnstructures.mkdirs();
+				if (!nxnstructures.mkdirs()) {
+					Logger.warning("Could not create " + nxnstructures.getAbsolutePath());
+				}
 			}
 		}
 
@@ -125,35 +149,24 @@ public final class TemplateManager
 						{
 							reader = Files.newInputStream(file);
 							final NBTTagCompound rawTemplate = CompressedStreamTools.readCompressed(reader);
-							if (isValidNBT(key, rawTemplate)) {
-								final NxNTemplate template = new NxNTemplate(key);
-								template.read(dataFixer.process(FixTypes.STRUCTURE, rawTemplate));
 
-								final TemplateCharacteristics characteristics = template.getCharacteristics();
+							final NxNTemplate template = new NxNTemplate(key);
+							template.read(dataFixer.process(FixTypes.STRUCTURE, rawTemplate));
 
-								Logger.info("    Template's shape is %s", characteristics.getShape());
-								for (final Rotation rotation : characteristics.getTemplateRotations())
-								{
-									Logger.info("    Template could be interpreted as being rotated %s", rotation);
-								}
+							final TemplateCharacteristics characteristics = template.getCharacteristics();
 
-								TemplateCache.put(key, template);
-
-								//validStructureNames.add(key);
-								if (template.isSpawnable())
-								{
-									Logger.info("    structure is valid", key);
-									spawnableStructureNames.add(key);
-								} else {
-									Logger.info("    structure is valid, but it is not in the spawnable list", key);
-								}
-							} else {
-								Logger.info("    structure did not have valid NBT", key);
+							Logger.info("    Template's shape is %s", characteristics.getShape());
+							for (final Rotation rotation : characteristics.getTemplateRotations())
+							{
+								Logger.info("    Template could be interpreted as being rotated %s", rotation);
 							}
+
+							TemplateCache.put(key, template);
+
 						}
 						catch (final IOException ioexception)
 						{
-							Logger.severe("Couldn't read advancement " + key + " from " + file, (Throwable)ioexception);
+							Logger.severe("Couldn't read structure " + key + " from " + file, (Throwable)ioexception);
 							return false;
 						}
 						finally
@@ -166,9 +179,6 @@ public final class TemplateManager
 					true,
 					true);
 		}
-
-		//TemplateManager.validStructures = validStructures;
-		//TemplateManager.validStructureNames = validStructureNames;
 	}
 
 	public static NxNTemplate getTemplateByName(ResourceLocation filename) {
@@ -214,7 +224,6 @@ public final class TemplateManager
 		return validStructures.get((int) v);
 	}
 
-
 	private static final Rotation[] rotations = Rotation.values();
 	private static Rotation getRotationToApply(Rotation templateRotation, Rotation roomRotation) {
 		int newOrdinal = roomRotation.ordinal() - templateRotation.ordinal();
@@ -224,55 +233,8 @@ public final class TemplateManager
 		return rotations[newOrdinal];
 	}
 
-	private static boolean isValidNBT(ResourceLocation resource, NBTTagCompound rawTemplate)
-	{
-		final NBTTagList palette = rawTemplate.getTagList("palette", 10);
-		for (int i = 0; i < palette.tagCount(); ++i)
-		{
-			final NBTTagCompound paletteEntry = palette.getCompoundTagAt(i);
-			//We're going to use minecraft air to detect blocks that can't be used, so we need to explicitly ok air here
-			if (paletteEntry.getString("Name") == "minecraft:air") continue;
-
-			final IBlockState iBlockState = NBTUtil.readBlockState(paletteEntry);
-			if (iBlockState == Blocks.AIR) {
-				Logger.warning("Cannot use structure " + resource + " because blockstate " + iBlockState + " is not present.");
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	public static void setConfigurationDirectory(File configurationDirectory)
 	{
 		TemplateManager.configurationDirectory = configurationDirectory;
 	}
-
-//	private static class TemplateLoader extends CacheLoader<ResourceLocation, NxNTemplate> {
-//		@Override
-//		public NxNTemplate load(ResourceLocation key) throws Exception
-//		{
-//			try
-//			{
-//				final Minecraft minecraft = Minecraft.getMinecraft();
-//				final DataFixer dataFixer = minecraft.getDataFixer();
-//				final IResourceManager resourceManager = minecraft.getResourceManager();
-//
-//				final NBTTagCompound nbttagcompound;
-//				try (IResource eightyone = resourceManager.getResource(key))//new ResourceLocation(Reference.MOD_ID, "nxnstructures/" +key + ".nbt")))
-//				{
-//					nbttagcompound = CompressedStreamTools.readCompressed(eightyone.getInputStream());
-//				}
-//
-//				final NxNTemplate template = new NxNTemplate(key);
-//				template.read(dataFixer.process(FixTypes.STRUCTURE, nbttagcompound));
-//				return template;
-//
-//			} catch (final IOException ignored) {
-//
-//			}
-//
-//			return null;
-//		}
-//	}
 }

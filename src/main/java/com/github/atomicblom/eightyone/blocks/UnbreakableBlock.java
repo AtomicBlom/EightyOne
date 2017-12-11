@@ -2,13 +2,13 @@ package com.github.atomicblom.eightyone.blocks;
 
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.material.DungeonMaterial;
-import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import com.github.atomicblom.eightyone.blocks.properties.IMimicTileEntity;
+import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.util.ITooltipFlag;
@@ -17,7 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
@@ -34,9 +33,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DungeonBlock extends Block implements ITileEntityProvider
+public class UnbreakableBlock extends Block
 {
-	public DungeonBlock()
+
+
+	public UnbreakableBlock()
 	{
 		super(new DungeonMaterial());
 		setHardness(2.0F);
@@ -44,14 +45,12 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 		setBlockUnbreakable();
 		setResistance(6000000.0F);
 		disableStats();
-		setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
-		setDefaultState(getDefaultState().withProperty(Reference.Blocks.OVERLAY, false));
 	}
 
 	@Override
 	protected BlockStateContainer createBlockState() {
-		final IProperty [] listedProperties = {Reference.Blocks.OVERLAY}; // no listed properties
-		final IUnlistedProperty [] unlistedProperties = {Reference.Blocks.MIMIC};
+		final IProperty[] listedProperties = {};
+		final IUnlistedProperty[] unlistedProperties = {Reference.Blocks.MIMIC};
 		return new ExtendedBlockState(this, listedProperties, unlistedProperties);
 	}
 
@@ -120,13 +119,6 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	private boolean useGlassBehaviour(IBlockState mimicBlockState) {
 		Block block = mimicBlockState.getBlock();
 		return block == Blocks.GLASS || block == Blocks.STAINED_GLASS;
-	}
-
-	@Nullable
-	@Override
-	public TileEntity createNewTileEntity(World worldIn, int meta)
-	{
-		return new TileEntityDungeonBlock();
 	}
 
 	@Override

@@ -6,10 +6,12 @@ import com.github.atomicblom.eightyone.blocks.*;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPlaceholderLootChest;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPortal;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
+import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -34,6 +36,9 @@ public class RegistrationEvents
 		registerBlock(registry, new DungeonBlock(), Reference.Blocks.DUNGEON_BLOCK);
 		registerBlock(registry, new SecretBlock(), Reference.Blocks.SECRET_BLOCK);
 		registerBlock(registry, new PlaceholderLootChest(), Reference.Blocks.PLACEHOLDER_LOOT_CHEST);
+
+		final Iterable<NBTTagCompound> nbtTagCompounds = TemplateManager.catalogueMimicBlockStates();
+
 
 		GameRegistry.registerTileEntity(TileEntityPortal.class, "portal");
 		GameRegistry.registerTileEntity(TileEntityDungeonBlock.class, "dungeon_block");
