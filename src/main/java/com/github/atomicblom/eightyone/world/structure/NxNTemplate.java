@@ -3,6 +3,7 @@ package com.github.atomicblom.eightyone.world.structure;
 import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
+import com.github.atomicblom.eightyone.blocks.UnbreakableBlock;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.IterableHelpers;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
@@ -93,54 +94,6 @@ public class NxNTemplate extends Template
 		}
 
 		return true;
-	}
-
-	public List<NBTTagCompound> getMimicBlockStates() {
-		final NBTTagList palette = sourceTagCompound.getTagList("palette", 10);
-
-		final String dungeonBlockRegistryName = Reference.Blocks.DUNGEON_BLOCK.toString();
-		final String secretBlockRegistryName = Reference.Blocks.SECRET_BLOCK.toString();
-
-		String[] blockNames = new String[palette.tagCount()];
-
-		boolean hasMimicBlocks = false;
-		for (int i = 0; i < palette.tagCount(); i++)
-		{
-			final NBTTagCompound blockStateNbt = palette.getCompoundTagAt(i);
-			final String name = blockStateNbt.getString("Name");
-
-			if (name.equals(dungeonBlockRegistryName) || name.equals(secretBlockRegistryName)) {
-				blockNames[i] = name;
-				hasMimicBlocks = true;
-			}
-		}
-
-		final List<NBTTagCompound> returnedList = Lists.newArrayList();
-
-		if (!hasMimicBlocks) return returnedList;
-
-
-		final NBTTagList blocks = sourceTagCompound.getTagList("blocks", 10);
-
-		for (int i = 0; i < blocks.tagCount(); i++)
-		{
-			final NBTTagCompound blockStateNbt = blocks.getCompoundTagAt(i);
-			if (blockStateNbt.hasKey("nbt")) {
-				final NBTTagCompound tileEntityNbt = blockStateNbt.getCompoundTag("nbt");
-
-				final String id = tileEntityNbt.getString("id");
-				if ("minecraft:dungeon_block".equals(id)) {
-					if (tileEntityNbt.hasKey("source")) {
-						final NBTTagCompound source = tileEntityNbt.getCompoundTag("source").copy();
-						source.setString("Type", blockNames[blockStateNbt.getInteger("state")]);
-						returnedList.add(source);
-					}
-				}
-			}
-		}
-
-		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
-		return Lists.newArrayList(returnedList.stream().filter(x -> IterableHelpers.distinctNbt(x, seen)).iterator());
 	}
 
 	@Override
@@ -344,5 +297,9 @@ public class NxNTemplate extends Template
 	public RoomPurpose getPurpose()
 	{
 		return purpose;
+	}
+
+	public NBTTagCompound getSourceTagCompound() {
+		return sourceTagCompound;
 	}
 }

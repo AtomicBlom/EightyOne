@@ -45,6 +45,7 @@ public class EightyOne
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         worldType = new NxNWorldType();
+        TemplateManager.reload();
         TemplateManager.catalogueValidStructures();
     }
 

@@ -205,4 +205,13 @@ public class UnbreakableBlock extends Block
 			mimicStates[j] = NBTUtil.readBlockState(dungeonState);
 		}
 	}
+
+	public IBlockState getMimicStateForBlockState(IBlockState sourceState) {
+		for (int i = 0; i < mimicStates.length; ++i) {
+			if (mimicStates[i] == sourceState) {
+				return this.getDefaultState().withProperty(Reference.Blocks.VARIATION, i);
+			}
+		}
+		return null;
+	}
 }

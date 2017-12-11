@@ -1,12 +1,16 @@
 package com.github.atomicblom.eightyone.world.structure;
 
 import com.github.atomicblom.eightyone.Logger;
+import com.github.atomicblom.eightyone.Reference;
+import com.github.atomicblom.eightyone.blocks.UnbreakableBlock;
+import com.github.atomicblom.eightyone.registration.RegisterMimicBlockEvent;
 import com.github.atomicblom.eightyone.util.IterableHelpers;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
 import net.minecraft.util.Mirror;
@@ -17,19 +21,23 @@ import net.minecraft.util.datafix.FixTypes;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ModContainer;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+@Mod.EventBusSubscriber
 public final class TemplateManager
 {
 	private static final Map<ResourceLocation, NxNTemplate> TemplateCache = Maps.newHashMap();
@@ -39,6 +47,15 @@ public final class TemplateManager
 	private static File configurationDirectory = new File("./");
 
 	private TemplateManager() {}
+
+
+	private static List<UnbreakableBlock> mimicBlocks = Lists.newArrayList();
+
+	@SubscribeEvent
+	public static void onRegisterMimicBlock(RegisterMimicBlockEvent event) {
+		mimicBlocks.add(event.getBlock());
+	}
+
 
 	public static void catalogueValidStructures()
 	{
@@ -65,7 +82,7 @@ public final class TemplateManager
 		for (final NxNTemplate template : TemplateCache.values())
 		{
 
-			final List<NBTTagCompound> blockStatePalette = template.getMimicBlockStates();
+			final List<NBTTagCompound> blockStatePalette = getMimicBlockStates(template);
 			if (!blockStatePalette.isEmpty())
 			{
 				uniqueStates = Iterables.concat(uniqueStates, blockStatePalette);
@@ -76,6 +93,120 @@ public final class TemplateManager
 
 		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
 		return Lists.newArrayList(Streams.stream(finalSet).filter(x -> IterableHelpers.distinctNbt(x, seen)).iterator());
+	}
+
+	public static void reload() {
+		for (NxNTemplate template : TemplateManager.TemplateCache.values()) {
+			NBTTagCompound sourceTagCompound = template.getSourceTagCompound();
+			NBTTagList palette = sourceTagCompound.getTagList("palette", 10);
+			NBTTagList blocks = sourceTagCompound.getTagList("blocks", 10);
+			HashMap<IBlockState, Integer> remapping = Maps.newHashMap();
+
+			final String dungeonBlockRegistryName = Reference.Blocks.DUNGEON_BLOCK.toString();
+			final String secretBlockRegistryName = Reference.Blocks.SECRET_BLOCK.toString();
+			boolean hasMimicBlocks = false;
+			for (int i = 0; i < palette.tagCount(); i++)
+			{
+				final NBTTagCompound blockStateNbt = palette.getCompoundTagAt(i);
+				final String name = blockStateNbt.getString("Name");
+
+				if (name.equals(dungeonBlockRegistryName) || name.equals(secretBlockRegistryName)) {
+					hasMimicBlocks = true;
+				}
+			}
+			if (!hasMimicBlocks) continue;
+
+			for (int i = 0; i < blocks.tagCount(); i++)
+			{
+				final NBTTagCompound blockStateNbt = blocks.getCompoundTagAt(i);
+				if (blockStateNbt.hasKey("nbt")) {
+					final NBTTagCompound tileEntityNbt = blockStateNbt.getCompoundTag("nbt");
+
+					final String id = tileEntityNbt.getString("id");
+					if ("minecraft:dungeon_block".equals(id)) {
+						if (tileEntityNbt.hasKey("source")) {
+							IBlockState sourceState = NBTUtil.readBlockState(tileEntityNbt.getCompoundTag("source"));
+
+							if (!remapping.containsKey(sourceState)) {
+								for (UnbreakableBlock mimicBlock : mimicBlocks) {
+									IBlockState newState = mimicBlock.getMimicStateForBlockState(sourceState);
+
+									if (newState != null) {
+										NBTTagCompound paletteTag = new NBTTagCompound();
+										NBTUtil.writeBlockState(paletteTag, newState);
+										int index = palette.tagCount();
+										palette.appendTag(paletteTag);
+										remapping.put(sourceState, index);
+										break;
+									}
+								}
+							}
+							Integer paletteIndex = remapping.get(sourceState);
+							if (paletteIndex != null) {
+								//Time to overwrite some data!
+								blockStateNbt.removeTag("nbt");
+								blockStateNbt.setInteger("state", paletteIndex);
+							}
+						}
+					}
+				}
+			}
+
+			template.read(sourceTagCompound);
+		}
+
+		//findTemplates(false);
+	}
+
+	public static List<NBTTagCompound> getMimicBlockStates(NxNTemplate template) {
+		NBTTagCompound sourceTagCompound = template.getSourceTagCompound();
+		final NBTTagList palette = sourceTagCompound.getTagList("palette", 10);
+
+
+		String[] blockNames = new String[palette.tagCount()];
+
+		boolean hasMimicBlocks = false;
+
+		final String dungeonBlockRegistryName = Reference.Blocks.DUNGEON_BLOCK.toString();
+		final String secretBlockRegistryName = Reference.Blocks.SECRET_BLOCK.toString();
+
+		for (int i = 0; i < palette.tagCount(); i++)
+		{
+			final NBTTagCompound blockStateNbt = palette.getCompoundTagAt(i);
+			final String name = blockStateNbt.getString("Name");
+
+			if (name.equals(dungeonBlockRegistryName) || name.equals(secretBlockRegistryName)) {
+				blockNames[i] = name;
+				hasMimicBlocks = true;
+			}
+		}
+
+		final List<NBTTagCompound> returnedList = Lists.newArrayList();
+
+		if (!hasMimicBlocks) return returnedList;
+
+
+		final NBTTagList blocks = sourceTagCompound.getTagList("blocks", 10);
+
+		for (int i = 0; i < blocks.tagCount(); i++)
+		{
+			final NBTTagCompound blockStateNbt = blocks.getCompoundTagAt(i);
+			if (blockStateNbt.hasKey("nbt")) {
+				final NBTTagCompound tileEntityNbt = blockStateNbt.getCompoundTag("nbt");
+
+				final String id = tileEntityNbt.getString("id");
+				if ("minecraft:dungeon_block".equals(id)) {
+					if (tileEntityNbt.hasKey("source")) {
+						final NBTTagCompound source = tileEntityNbt.getCompoundTag("source").copy();
+						source.setString("Type", blockNames[blockStateNbt.getInteger("state")]);
+						returnedList.add(source);
+					}
+				}
+			}
+		}
+
+		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
+		return Lists.newArrayList(returnedList.stream().filter(x -> IterableHelpers.distinctNbt(x, seen)).iterator());
 	}
 
 	private static class ConfigFileModContainer extends DummyModContainer {
