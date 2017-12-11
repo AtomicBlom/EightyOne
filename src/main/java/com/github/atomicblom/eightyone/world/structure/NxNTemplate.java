@@ -1,14 +1,18 @@
 package com.github.atomicblom.eightyone.world.structure;
 
+import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
+import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -20,6 +24,7 @@ import net.minecraft.world.gen.structure.template.Template;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 
 public class NxNTemplate extends Template
 {
@@ -176,14 +181,19 @@ public class NxNTemplate extends Template
 	public void addBlocksToWorld(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, World world, BlockPos pos, PlacementSettings placementIn)
 	{
 		placementIn.setBoundingBoxFromChunk();
+		Random rand = new Random();
+		StructureBoundingBox boundingBox = placementIn.getBoundingBox();
+		rand.setSeed((boundingBox.minX >> 4) * 0x4f9939f508L + (boundingBox.minZ >> 4) * 0x1ef1565bd5L);
 
 		if (!blocks.isEmpty() && size.getX() >= 1 && size.getY() >= 1 && size.getZ() >= 1)
 		{
 			final Block block = placementIn.getReplacedBlock();
-			final StructureBoundingBox structureboundingbox = placementIn.getBoundingBox();
+			final StructureBoundingBox structureboundingbox = boundingBox;
 
-			for (final BlockInfo templateBlockInfo : blocks)
+			for (BlockInfo templateBlockInfo : blocks)
 			{
+				templateBlockInfo = getAlternateBlockInfo(templateBlockInfo, rand);
+
 				final BlockPos blockpos = transformedBlockPos(placementIn, templateBlockInfo.pos).add(pos);
 
 				final Block processedBlock = templateBlockInfo.blockState.getBlock();
@@ -214,6 +224,39 @@ public class NxNTemplate extends Template
 				}
 			}
 		}
+	}
+
+	private BlockInfo getAlternateBlockInfo(BlockInfo templateBlockInfo, Random r) {
+		Block block = templateBlockInfo.blockState.getBlock();
+		if (block == BlockLibrary.placeholder_loot_chest) {
+			NBTTagCompound tileEntityData = templateBlockInfo.tileentityData;
+
+			String lootTable = tileEntityData.getString("LootTable");
+			if (lootTable.isEmpty()) lootTable = "eightyone:loot_chest";
+			BlockChest.Type chestType = BlockChest.Type.BASIC;
+			Block chestBlock;
+			try {
+				chestType = BlockChest.Type.valueOf(tileEntityData.getString("ChestType").toUpperCase());
+			} catch (Exception e) { }
+
+			chestBlock = chestType == BlockChest.Type.BASIC ? Blocks.CHEST : Blocks.TRAPPED_CHEST;
+
+			IBlockState chestBlockState = chestBlock.getDefaultState()
+					.withProperty(
+							BlockHorizontal.FACING,
+							templateBlockInfo.blockState.getValue(BlockHorizontal.FACING)
+					);
+
+			TileEntityChest tileEntityChest = new TileEntityChest();
+			ResourceLocation lootTableRL = new ResourceLocation(lootTable);
+			tileEntityChest.setLootTable(new ResourceLocation(lootTableRL.getResourceDomain(), "chests/" + lootTableRL.getResourcePath()), r.nextLong());
+			tileEntityChest.setPos(templateBlockInfo.pos);
+			NBTTagCompound chestNbt = new NBTTagCompound();
+			tileEntityChest.writeToNBT(chestNbt);
+
+			templateBlockInfo = new BlockInfo(templateBlockInfo.pos, chestBlockState, chestNbt);
+		}
+		return templateBlockInfo;
 	}
 
 	public RoomPurpose getPurpose()
