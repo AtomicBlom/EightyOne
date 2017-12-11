@@ -4,7 +4,9 @@ import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.util.EntranceHelper;
+import com.github.atomicblom.eightyone.util.IterableHelpers;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
+import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockHorizontal;
@@ -25,11 +27,9 @@ import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NxNTemplate extends Template
 {
@@ -95,24 +95,52 @@ public class NxNTemplate extends Template
 		return true;
 	}
 
-	public NBTTagList getBlockStatePalette() {
+	public List<NBTTagCompound> getMimicBlockStates() {
 		final NBTTagList palette = sourceTagCompound.getTagList("palette", 10);
 
 		final String dungeonBlockRegistryName = Reference.Blocks.DUNGEON_BLOCK.toString();
 		final String secretBlockRegistryName = Reference.Blocks.SECRET_BLOCK.toString();
 
-		final NBTTagList returnedList = new NBTTagList();
+		String[] blockNames = new String[palette.tagCount()];
 
+		boolean hasMimicBlocks = false;
 		for (int i = 0; i < palette.tagCount(); i++)
 		{
 			final NBTTagCompound blockStateNbt = palette.getCompoundTagAt(i);
 			final String name = blockStateNbt.getString("Name");
+
 			if (name.equals(dungeonBlockRegistryName) || name.equals(secretBlockRegistryName)) {
-				returnedList.appendTag(blockStateNbt.copy());
+				blockNames[i] = name;
+				hasMimicBlocks = true;
 			}
 		}
 
-		return returnedList;
+		final List<NBTTagCompound> returnedList = Lists.newArrayList();
+
+		if (!hasMimicBlocks) return returnedList;
+
+
+		final NBTTagList blocks = sourceTagCompound.getTagList("blocks", 10);
+
+		for (int i = 0; i < blocks.tagCount(); i++)
+		{
+			final NBTTagCompound blockStateNbt = blocks.getCompoundTagAt(i);
+			if (blockStateNbt.hasKey("nbt")) {
+				final NBTTagCompound tileEntityNbt = blockStateNbt.getCompoundTag("nbt");
+
+				final String id = tileEntityNbt.getString("id");
+				if ("minecraft:dungeon_block".equals(id)) {
+					if (tileEntityNbt.hasKey("source")) {
+						final NBTTagCompound source = tileEntityNbt.getCompoundTag("source").copy();
+						source.setString("Type", blockNames[blockStateNbt.getInteger("state")]);
+						returnedList.add(source);
+					}
+				}
+			}
+		}
+
+		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
+		return Lists.newArrayList(returnedList.stream().filter(x -> IterableHelpers.distinctNbt(x, seen)).iterator());
 	}
 
 	@Override

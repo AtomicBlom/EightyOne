@@ -1,9 +1,12 @@
 package com.github.atomicblom.eightyone.world.structure;
 
 import com.github.atomicblom.eightyone.Logger;
+import com.github.atomicblom.eightyone.util.IterableHelpers;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
 import net.minecraft.util.Mirror;
@@ -21,13 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public final class TemplateManager
@@ -60,30 +60,22 @@ public final class TemplateManager
 	}
 
 	public static Iterable<NBTTagCompound> catalogueMimicBlockStates() {
-		List<NBTTagCompound> uniqueStates = Lists.newArrayList();
+		Iterable<NBTTagCompound> uniqueStates = Lists.newArrayList();
 
 		for (final NxNTemplate template : TemplateCache.values())
 		{
-			final NBTTagList blockStatePalette = template.getBlockStatePalette();
-			for (int i = 0; i < blockStatePalette.tagCount(); i++)
+
+			final List<NBTTagCompound> blockStatePalette = template.getMimicBlockStates();
+			if (!blockStatePalette.isEmpty())
 			{
-				uniqueStates.add(blockStatePalette.getCompoundTagAt(i));
+				uniqueStates = Iterables.concat(uniqueStates, blockStatePalette);
 			}
 		}
 
-		return () -> uniqueStates.stream().filter(TemplateManager::distinctByKey).iterator();
-	}
+		final Iterable<NBTTagCompound> finalSet = uniqueStates;
 
-	public static Boolean distinctByKey(NBTTagCompound tagCompound) {
 		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
-		for (final NBTTagCompound existingTagCompound : seen)
-		{
-			if (NBTUtil.areNBTEquals(tagCompound, existingTagCompound, true)) {
-				return false;
-			}
-		}
-		seen.add(tagCompound);
-		return true;
+		return Lists.newArrayList(Streams.stream(finalSet).filter(x -> IterableHelpers.distinctNbt(x, seen)).iterator());
 	}
 
 	private static class ConfigFileModContainer extends DummyModContainer {

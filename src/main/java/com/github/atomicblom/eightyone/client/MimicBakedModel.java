@@ -1,8 +1,11 @@
 package com.github.atomicblom.eightyone.client;
 
+import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Reference;
+import com.github.atomicblom.eightyone.blocks.UnbreakableBlock;
 import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import com.google.common.collect.Lists;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockModelShapes;
@@ -89,7 +92,11 @@ public class MimicBakedModel implements IBakedModel {
 		final boolean isCreativeThisFrame = minecraft.player.isCreative();
 
 		if (isCreativeThisFrame && (renderLayer == BlockRenderLayer.CUTOUT || renderLayer == null) && iBlockState != null) {
-			final IBlockState state = iBlockState.getBlock().getDefaultState().withProperty(Reference.Blocks.OVERLAY, true);
+			Block block = iBlockState.getBlock();
+			if (block == BlockLibrary.dungeon_block || block instanceof UnbreakableBlock) {
+				block = BlockLibrary.dungeon_block;
+			}
+			final IBlockState state = block.getDefaultState().withProperty(Reference.Blocks.OVERLAY, true);
 			final IBakedModel modelForState = blockModelShapes.getModelForState(state);
 			quads.addAll(modelForState.getQuads(state, side, rand));
 		}

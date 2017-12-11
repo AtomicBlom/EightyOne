@@ -18,6 +18,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
@@ -37,19 +39,32 @@ public class UnbreakableBlock extends Block
 {
 
 
-	public UnbreakableBlock()
+	private final List<NBTTagCompound> dungeonStates;
+	private final IBlockState[] mimicStates;
+	private final int blockSlice;
+
+	public UnbreakableBlock(List<NBTTagCompound> dungeonStates, int blockSlice)
 	{
 		super(new DungeonMaterial());
+		this.dungeonStates = dungeonStates;
+		this.blockSlice = blockSlice;
+
+		int totalStates = dungeonStates.size() - blockSlice;
+		if (totalStates > 16) totalStates = 16;
+
+		mimicStates = new IBlockState[totalStates];
+
 		setHardness(2.0F);
 		setSoundType(SoundType.STONE);
 		setBlockUnbreakable();
 		setResistance(6000000.0F);
+		setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
 		disableStats();
 	}
 
 	@Override
 	protected BlockStateContainer createBlockState() {
-		final IProperty[] listedProperties = {};
+		final IProperty[] listedProperties = {Reference.Blocks.VARIATION};
 		final IUnlistedProperty[] unlistedProperties = {Reference.Blocks.MIMIC};
 		return new ExtendedBlockState(this, listedProperties, unlistedProperties);
 	}
@@ -57,14 +72,12 @@ public class UnbreakableBlock extends Block
 	@Override
 	public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
 		if (state instanceof IExtendedBlockState) {
-			final TileEntity te = world.getTileEntity(pos);
-			if (te instanceof IMimicTileEntity) {
-				IExtendedBlockState retval = (IExtendedBlockState)state;
-				final IBlockState copiedBlock = ((IMimicTileEntity) te).getCopiedBlock();
-				retval = retval.withProperty(Reference.Blocks.MIMIC, copiedBlock);
-				return retval;
-			}
+			final Integer value = state.getValue(Reference.Blocks.VARIATION);
 
+
+			IExtendedBlockState retval = (IExtendedBlockState)state;
+			retval = retval.withProperty(Reference.Blocks.MIMIC, this.mimicStates[value]);
+			return retval;
 		}
 		return state;
 	}
@@ -85,7 +98,7 @@ public class UnbreakableBlock extends Block
 	 */
 	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
 	{
-		final IBlockState mimicBlockState = getMimicBlock(worldIn, pos);
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
 		if (mimicBlockState != null) {
 			mimicBlockState.getBlock().onEntityCollidedWithBlock(worldIn, pos, state, entityIn);
 		}
@@ -93,7 +106,7 @@ public class UnbreakableBlock extends Block
 
 	@Override
 	public float getSlipperiness(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable Entity entity) {
-		final IBlockState mimicBlockState = getMimicBlock(world, pos);
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
 		if (mimicBlockState != null) {
 			return mimicBlockState.getBlock().getSlipperiness(state, world, pos, entity);
 		}
@@ -103,7 +116,9 @@ public class UnbreakableBlock extends Block
 	@Override
 	public boolean doesSideBlockRendering(IBlockState state, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
 	{
-		final IBlockState mimicBlockState = getMimicBlock(blockAccess, pos);
+
+
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
 		if (mimicBlockState != null)
 		{
 			if (useGlassBehaviour(mimicBlockState)) {
@@ -121,25 +136,29 @@ public class UnbreakableBlock extends Block
 		return block == Blocks.GLASS || block == Blocks.STAINED_GLASS;
 	}
 
-	@Override
+/*	@Override
 	public void onBlockPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull EntityLivingBase player,
 	                            @Nonnull ItemStack stack) {
-		setMimicBlock(world, pos, MimicItemStackUtil.getMimickedBlock(stack));
+		//setMimicBlock(world, pos, MimicItemStackUtil.getMimickedBlock(stack));
+
 		if (!world.isRemote) {
 			world.notifyBlockUpdate(pos, state, state, 3);
 		}
-	}
+	}*/
 
 	@Override
 	public IBlockState getStateFromMeta(int meta)
 	{
-		return getDefaultState();
+		if (meta >= this.mimicStates.length) {
+			meta = 0;
+		}
+		return getDefaultState().withProperty(Reference.Blocks.VARIATION, meta);
 	}
 
 	@Override
 	public int getMetaFromState(IBlockState state)
 	{
-		return 0;
+		return state.getValue(Reference.Blocks.VARIATION);
 	}
 
 	@Override
@@ -159,11 +178,11 @@ public class UnbreakableBlock extends Block
 	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos,
 	                              EntityPlayer player) {
 		final ItemStack pickBlock = super.getPickBlock(state, target, world, pos, player);
-		MimicItemStackUtil.setMimickedBlock(pickBlock, getMimicBlock(world, pos));
+		//MimicItemStackUtil.setMimickedBlock(pickBlock, getMimicBlock(world, pos));
 		return pickBlock;
 	}
 
-	private static void setMimicBlock(@Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nullable IBlockState paintSource) {
+	/*private static void setMimicBlock(@Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nullable IBlockState paintSource) {
 		final TileEntity te = world.getTileEntity(pos);
 		if (te instanceof IMimicTileEntity) {
 			((IMimicTileEntity) te).setCopiedBlock(paintSource);
@@ -176,5 +195,14 @@ public class UnbreakableBlock extends Block
 			return ((IMimicTileEntity) te).getCopiedBlock();
 		}
 		return null;
+	}*/
+
+	public void materialize()
+	{
+		for (int i = this.blockSlice, j = 0; i < this.dungeonStates.size() && j < mimicStates.length; i++, j++)
+		{
+			NBTTagCompound dungeonState = dungeonStates.get(i);
+			mimicStates[j] = NBTUtil.readBlockState(dungeonState);
+		}
 	}
 }

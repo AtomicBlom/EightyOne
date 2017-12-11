@@ -3,12 +3,14 @@ package com.github.atomicblom.eightyone;
 import com.github.atomicblom.eightyone.client.gui.GuiHandler;
 import com.github.atomicblom.eightyone.command.DescribeRoomCommand;
 import com.github.atomicblom.eightyone.command.ReloadRoomsCommand;
+import com.github.atomicblom.eightyone.registration.MaterializeMimicBlocks;
 import com.github.atomicblom.eightyone.registration.PacketHandler;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
 import com.github.atomicblom.eightyone.world.NxNWorldType;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import net.minecraft.world.WorldType;
 import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -35,6 +37,7 @@ public class EightyOne
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
+        MinecraftForge.EVENT_BUS.post(new MaterializeMimicBlocks());
         DimensionManager.registerDimension(81, NxNWorldProvider.initDimensionType());
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }

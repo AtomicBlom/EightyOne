@@ -28,7 +28,7 @@ public final class Reference {
 
 		public static final IProperty<Boolean> OVERLAY = PropertyBool.create("overlay");
 		public static final IUnlistedProperty<IBlockState> MIMIC = new MimicBlockProperty();
-		public static final IUnlistedProperty<Integer> VARIATION = Properties.toUnlisted(PropertyInteger.create("variation", 0, 15));
+		public static final IProperty<Integer> VARIATION = PropertyInteger.create("variation", 0, 15);
 	}
 
 	private Reference() {}

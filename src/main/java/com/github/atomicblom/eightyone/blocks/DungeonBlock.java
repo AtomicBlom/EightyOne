@@ -50,7 +50,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 
 	@Override
 	protected BlockStateContainer createBlockState() {
-		final IProperty [] listedProperties = {Reference.Blocks.OVERLAY}; // no listed properties
+		final IProperty [] listedProperties = {Reference.Blocks.OVERLAY};
 		final IUnlistedProperty [] unlistedProperties = {Reference.Blocks.MIMIC};
 		return new ExtendedBlockState(this, listedProperties, unlistedProperties);
 	}
