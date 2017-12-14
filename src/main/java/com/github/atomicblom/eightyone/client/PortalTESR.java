@@ -713,12 +713,14 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 		final Vector3f scaleVec = new Vector3f(0.25f, 0.25f, 0.25f);
 		final Vector3f translateVec = new Vector3f();
 
+
 		for (float cx = 0; cx < 3; ++cx)
 		{
 			for (float cy = 0; cy < 3; ++cy)
 			{
 				for (float cz = 0; cz < 3; ++cz)
 				{
+
 					Matrix4f.setIdentity(transform);
 
 					translateVec.set(

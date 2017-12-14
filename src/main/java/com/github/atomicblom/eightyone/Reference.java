@@ -18,17 +18,20 @@ public final class Reference {
 	public static final int DIMENSION_ID = 81;
 	public static final String WORLD_NAME = "labyrinth";
 	public static BlockRenderLayer CURRENT_RENDER_LAYER;
-	public static ResourceLocation DUNGEON_RECIPE = resource("dungeon_recipe");
+	public static final ResourceLocation DUNGEON_RECIPE = resource("dungeon_recipe");
 
 	public static final class Blocks {
 		public static final ResourceLocation PORTAL = resource("portal");
 		public static final ResourceLocation DUNGEON_BLOCK = resource("dungeon_block");
 		public static final ResourceLocation SECRET_BLOCK = resource("secret_block");
+		public static final ResourceLocation SECRET_PRESSURE_PLATE = resource("secret_pressure_plate");
 		public static final ResourceLocation PLACEHOLDER_LOOT_CHEST = resource("placeholder_loot_chest");
+
 
 		public static final IProperty<Boolean> OVERLAY = PropertyBool.create("overlay");
 		public static final IUnlistedProperty<IBlockState> MIMIC = new MimicBlockProperty();
 		public static final IProperty<Integer> VARIATION = PropertyInteger.create("variation", 0, 15);
+
 	}
 
 	private Reference() {}

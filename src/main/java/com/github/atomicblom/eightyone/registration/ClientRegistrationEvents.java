@@ -64,6 +64,7 @@ public class ClientRegistrationEvents
 
 		ModelLoader.setCustomModelResourceLocation(ItemLibrary.dungeon_block, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.DUNGEON_BLOCK, "inventory"));
 		ModelLoader.setCustomModelResourceLocation(ItemLibrary.secret_block, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.SECRET_BLOCK, "inventory"));
+		ModelLoader.setCustomModelResourceLocation(ItemLibrary.secret_pressure_plate, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.SECRET_PRESSURE_PLATE, "inventory"));
 		ModelLoader.setCustomModelResourceLocation(ItemLibrary.portal, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.PORTAL, "inventory"));
 		ModelLoader.setCustomModelResourceLocation(ItemLibrary.placeholder_loot_chest, DEFAULT_ITEM_SUBTYPE, new ModelResourceLocation(Reference.Blocks.PLACEHOLDER_LOOT_CHEST, "inventory"));
 	}

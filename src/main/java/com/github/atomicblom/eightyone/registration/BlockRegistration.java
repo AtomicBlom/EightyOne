@@ -1,18 +1,14 @@
 package com.github.atomicblom.eightyone.registration;
 
-import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.*;
+import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPlaceholderLootChest;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityPortal;
-import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,7 +20,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import java.util.List;
 
 @Mod.EventBusSubscriber
-public class RegistrationEvents
+public class BlockRegistration
 {
 	@SubscribeEvent
 	public static void onMaterializeMimicBlocks(MaterializeMimicBlocks event) {
@@ -44,6 +40,7 @@ public class RegistrationEvents
 		registerBlock(registry, new DungeonBlock(), Reference.Blocks.DUNGEON_BLOCK);
 		registerBlock(registry, new SecretBlock(), Reference.Blocks.SECRET_BLOCK);
 		registerBlock(registry, new PlaceholderLootChest(), Reference.Blocks.PLACEHOLDER_LOOT_CHEST);
+		registerBlock(registry, new SecretPressurePlate(), Reference.Blocks.SECRET_PRESSURE_PLATE);
 
 		final Iterable<NBTTagCompound> mimicBlockStates = TemplateManager.catalogueMimicBlockStates();
 

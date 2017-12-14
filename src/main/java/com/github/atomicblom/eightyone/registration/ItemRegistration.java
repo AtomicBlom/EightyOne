@@ -22,7 +22,9 @@ public class ItemRegistration
 		registerItemFromBlock(registry, BlockLibrary.portal);
 		registerItemFromBlock(registry, BlockLibrary.dungeon_block);
 		registerItemFromBlock(registry, BlockLibrary.secret_block);
+		registerItemFromBlock(registry, BlockLibrary.secret_pressure_plate);
 		registerItemFromBlock(registry, BlockLibrary.placeholder_loot_chest);
+
 
 		for (final UnbreakableBlock mimicBlock : mimicBlocks)
 		{

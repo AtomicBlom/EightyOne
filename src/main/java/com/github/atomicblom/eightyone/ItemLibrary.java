@@ -12,12 +12,14 @@ public class ItemLibrary
 	public static final ItemBlock portal;
 	public static final ItemBlock dungeon_block;
 	public static final ItemBlock secret_block;
+	public static final ItemBlock secret_pressure_plate;
 	public static final ItemBlock placeholder_loot_chest;
 
 	static {
 		portal = null;
 		dungeon_block = null;
 		secret_block = null;
+		secret_pressure_plate = null;
 		placeholder_loot_chest = null;
 	}
 }
