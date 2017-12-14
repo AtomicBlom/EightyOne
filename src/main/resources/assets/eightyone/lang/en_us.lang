@@ -1,1 +1,6 @@
 eightyone:generator.labyrinth=The Labyrinth
+
+tile.eightyone:dungeon_block.name=Unbreakable Block
+tile.eightyone:secret_block.name=Hidden Passage
+tile.eightyone:portal.name=Portal to the Labyrinth
+tile.eightyone:secret_pressure_plate.name=Hidden Pressure Plate
