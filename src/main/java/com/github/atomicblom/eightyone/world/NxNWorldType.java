@@ -1,8 +1,13 @@
 package com.github.atomicblom.eightyone.world;
 
 import com.github.atomicblom.eightyone.Reference;
+import net.minecraft.init.Biomes;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldType;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.BiomeProvider;
+import net.minecraft.world.biome.BiomeProviderSingle;
+import net.minecraft.world.gen.FlatGeneratorInfo;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -34,6 +39,11 @@ public class NxNWorldType extends WorldType
 	public IChunkGenerator getChunkGenerator(World world, String generatorOptions)
 	{
 		return new NxNChunkGenerator(world, world.getSeed(), false);
+	}
+
+	public BiomeProvider getBiomeProvider(World world)
+	{
+		return new BiomeProviderSingle(Biomes.PLAINS);
 	}
 
 	@Override
