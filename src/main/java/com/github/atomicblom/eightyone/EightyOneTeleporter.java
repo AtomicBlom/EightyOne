@@ -6,7 +6,6 @@ import com.github.atomicblom.eightyone.world.NxNChunkGenerator;
 import com.github.atomicblom.eightyone.world.NxNWorldProvider;
 import com.github.atomicblom.eightyone.world.Room;
 import com.github.atomicblom.eightyone.world.structure.*;
-import com.google.common.collect.Iterables;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,7 +21,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
-import net.minecraft.world.gen.structure.template.Template;
+
 import java.util.Arrays;
 
 public class EightyOneTeleporter extends Teleporter {
@@ -61,7 +60,9 @@ public class EightyOneTeleporter extends Teleporter {
 					int height = entityIn.world.getHeight(pos.getX(), pos.getZ());
 					position = new BlockPos(pos.getX(), height, pos.getZ());
 
-                    renderPortalToWorld(entityIn.world, position, false);
+
+
+                    renderPortalToWorld(entityIn.world, position, false, spawnRoom.getCharacteristics());
                     return true;
                 }
             }
@@ -70,19 +71,20 @@ public class EightyOneTeleporter extends Teleporter {
 			int height = entityIn.world.getHeight(position.getX() + 1, position.getZ() + 1);
             position = new BlockPos(position.getX() + 1, height, position.getZ() + 1);
 
-            renderPortalToWorld(entityIn.world, position, true);
+            TemplateCharacteristics templateCharacteristics = new TemplateCharacteristics(Shape.Straight, Arrays.asList(net.minecraft.util.Rotation.values()));
+            renderPortalToWorld(entityIn.world, position, true, templateCharacteristics);
             return true;
         }
         return false;
     }
 
-    private void renderPortalToWorld(World world, BlockPos blockPos, boolean fillUnderneath) {
+    private void renderPortalToWorld(World world, BlockPos blockPos, boolean fillUnderneath, TemplateCharacteristics characteristics) {
 		Logger.info("renderPortalToWorld: %s fillUnderneath: %s", blockPos, fillUnderneath);
 		ResourceLocation templateName = fillUnderneath ? new ResourceLocation(Reference.MOD_ID, "portal_overworld")
 				:new ResourceLocation(Reference.MOD_ID, "portal");
 		//final NxNTemplate spawn = TemplateManager.getTemplateByName(templateName);
 	    double chance = world.rand.nextDouble();
-	    final RoomTemplate spawn = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.DeadEnd, Arrays.asList(net.minecraft.util.Rotation.values())), chance, RoomPurpose.PORTAL);
+	    final RoomTemplate spawn = TemplateManager.getTemplateByChance(characteristics, chance, RoomPurpose.PORTAL);
         final PlacementSettings placementSettings = new PlacementSettings();
         if (spawn == null) {
         	Logger.severe("Could not load portal template!");
