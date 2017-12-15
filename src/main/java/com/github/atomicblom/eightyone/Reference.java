@@ -5,6 +5,8 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.property.IUnlistedProperty;
@@ -15,10 +17,21 @@ public final class Reference {
 	public static final String MOD_NAME = "Eighty One";
 	public static final String VERSION = "@MOD_VERSION@";
 
+	public static BlockRenderLayer CURRENT_RENDER_LAYER;
+
 	public static final int DIMENSION_ID = 81;
 	public static final String WORLD_NAME = "labyrinth";
-	public static BlockRenderLayer CURRENT_RENDER_LAYER;
+
 	public static final ResourceLocation DUNGEON_RECIPE = resource("dungeon_recipe");
+
+	public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(MOD_ID) {
+		public ItemStack _creativeTabIcon;
+
+		@Override
+		public ItemStack getTabIconItem() {
+			return (_creativeTabIcon != null ? _creativeTabIcon : (_creativeTabIcon = new ItemStack(ItemLibrary.portal)));
+		}
+	};
 
 	public static final class Blocks {
 		public static final ResourceLocation PORTAL = resource("portal");
