@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "portal",
+  "pattern": [
+    "TET",
+    "EME",
+    "TET"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "E": {
+      "item": "minecraft:enchanted_book"
+    },
+    "M": {
+      "item": "minecraft:mossy_cobblestone"
+    }
+  },
+  "result": {
+    "item": "eightyone:portal"
+  }
+}
