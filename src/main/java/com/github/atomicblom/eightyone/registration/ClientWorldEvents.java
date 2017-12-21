@@ -4,13 +4,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-@Mod.EventBusSubscriber
+@Mod.EventBusSubscriber(Side.CLIENT)
 public class ClientWorldEvents
 {
 	private static boolean wasCreativeLastFrame;
 
-	@SubscribeEvent
+	@SubscribeEvent()
 	public static void onTick(TickEvent.ClientTickEvent event) {
 		final Minecraft minecraft = Minecraft.getMinecraft();
 		if (minecraft.player == null) return;
@@ -22,5 +24,7 @@ public class ClientWorldEvents
 		}
 		wasCreativeLastFrame = isCreativeThisFrame;
 	}
+
+
 }
 
