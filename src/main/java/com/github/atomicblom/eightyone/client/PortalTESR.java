@@ -172,8 +172,15 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 				float green = 0.75f;
 
 				final float offsetProgress = (currentPulse2 - progressData.renderSet * 200) / 2000.0f;
-				if (offsetProgress <= 0 || offsetProgress >= 1.2) continue;
+				if (progressData.currentlyAir && offsetProgress >= 1.2) continue;
+				if (offsetProgress <= 0) continue;
+
 				float alpha2 = 1;
+				if (offsetProgress >= 1.7) {
+					//continue;
+					alpha2 = 1;
+				}
+
 
 				if (offsetProgress > 1)
 				{
@@ -184,11 +191,19 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 					alpha2 = ((offsetProgress) * 5);
 				}
 
+				if (progressData.currentlyAir) {
+					green = 1;
+					alpha2 /= 2;
+				} else {
+					red = 1;
+				}
+
+
 				GlStateManager.color(
+						red,
+						green,
 						0.75f,
-						1.0F,
-						0.75f,
-						alpha2 / 2f);
+						alpha2);
 
 				GlStateManager.pushMatrix();
 

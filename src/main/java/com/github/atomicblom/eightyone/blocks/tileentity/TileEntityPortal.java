@@ -109,6 +109,7 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		public final BlockPos pos;
 		public final int renderSet;
 		public boolean currentlyValid = false;
+		public boolean currentlyAir = true;
 		public double distanceFromPlayer;
 
 		public PortalProgressData(BlockType type, BlockPos pos, int renderSet)
@@ -120,11 +121,16 @@ public class TileEntityPortal extends TileEntity implements ITickable
 
 		public boolean checkBlock(World world, Block expectedBlock) {
 			currentlyValid = false;
-			if (expectedBlock != null && expectedBlock != Blocks.AIR)
+			currentlyAir = false;
+			final Block block = world.getBlockState(pos).getBlock();
+			if (expectedBlock == null || block == Blocks.AIR)
 			{
-				if (world.getBlockState(pos).getBlock() == expectedBlock) {
-					currentlyValid = true;
-				}
+				currentlyAir = true;
+				return currentlyValid;
+			}
+
+			if (block == expectedBlock) {
+				currentlyValid = true;
 			}
 			return currentlyValid;
 		}
