@@ -41,21 +41,7 @@ public class RoomTemplate {
     }
 
     public void addBlocksToWorldChunk(World world, BlockPos blockPos, PlacementSettings placementSettings) {
-        placementSettings.setMirror(mirror);
-        placementSettings.setRotation(rotation);
-        final BlockPos templateSize = template.getSize();
-
-        switch (rotation) {
-            case CLOCKWISE_90:
-                blockPos = blockPos.add(templateSize.getX() - 1, 0, 0);
-                break;
-            case CLOCKWISE_180:
-                blockPos = blockPos.add(templateSize.getX() - 1, 0, templateSize.getZ() - 1);
-                break;
-            case COUNTERCLOCKWISE_90:
-                blockPos = blockPos.add(0, 0, templateSize.getZ() - 1);
-                break;
-        }
+        blockPos = updateTemplatePlacement(blockPos, placementSettings);
 
         template.addBlocksToWorldChunk(world, template.offset(blockPos), placementSettings);
     }
@@ -66,7 +52,21 @@ public class RoomTemplate {
         return "[" + template.getResourceLocation() + ", rotation=" + rotation + ", mirror=" + mirror + "]";
     }
 
-    public void addBlocksToChunkPrimer(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, List<Entity> entitiesToAdd, World world, BlockPos blockPos, PlacementSettings placementSettings)
+    public void addBlocksToChunkPrimer(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, World world, BlockPos blockPos, PlacementSettings placementSettings)
+    {
+        blockPos = updateTemplatePlacement(blockPos, placementSettings);
+
+        template.addBlocksToWorld(primer, tileEntitiesToAdd, world, template.offset(blockPos), placementSettings);
+    }
+
+    public void addEntitiesToWorld(World world, BlockPos blockPos, PlacementSettings placementSettings)
+    {
+        blockPos = updateTemplatePlacement(blockPos, placementSettings);
+
+        template.addEntitiesToWorld(world, template.offset(blockPos), placementSettings.getMirror(), placementSettings.getRotation(), placementSettings.getBoundingBox());
+    }
+
+    public BlockPos updateTemplatePlacement(BlockPos blockPos, PlacementSettings placementSettings)
     {
         placementSettings.setMirror(mirror);
         placementSettings.setRotation(rotation);
@@ -83,7 +83,6 @@ public class RoomTemplate {
                 blockPos = blockPos.add(0, 0, templateSize.getZ() - 1);
                 break;
         }
-
-        template.addBlocksToWorld(primer, tileEntitiesToAdd, entitiesToAdd, world, template.offset(blockPos), placementSettings);
+        return blockPos;
     }
 }

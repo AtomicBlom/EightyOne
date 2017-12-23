@@ -30,6 +30,7 @@ import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
+import net.minecraft.world.storage.loot.LootTableList;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -205,11 +206,10 @@ public class NxNTemplate extends Template
 	/**
 	 * Adds blocks and entities from this structure to the given world.
 	 *
-	 * @param entitiesToAdd
 	 * @param pos The origin position for the structure
 	 * @param placementIn Placement settings to use
 	 */
-	public void addBlocksToWorld(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, List<Entity> entitiesToAdd, World world, BlockPos pos, PlacementSettings placementIn)
+	public void addBlocksToWorld(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, World world, BlockPos pos, PlacementSettings placementIn)
 	{
 		placementIn.setBoundingBoxFromChunk();
 		Random rand = new Random();
@@ -256,43 +256,6 @@ public class NxNTemplate extends Template
 				}
 			}
 		}
-
-		for (Template.EntityInfo template$entityinfo : this.entities)
-		{
-			final Mirror mirrorIn = placementIn.getMirror();
-			BlockPos blockpos = transformedBlockPos(placementIn, template$entityinfo.blockPos).add(pos);
-
-			if (boundingBox == null || boundingBox.isVecInside(blockpos))
-			{
-				NBTTagCompound nbttagcompound = template$entityinfo.entityData;
-				Vec3d vec3d = transformedVec3d(template$entityinfo.pos, mirrorIn, rotationIn);
-				Vec3d vec3d1 = vec3d.addVector((double)pos.getX(), (double)pos.getY(), (double)pos.getZ());
-				NBTTagList nbttaglist = new NBTTagList();
-				nbttaglist.appendTag(new NBTTagDouble(vec3d1.x));
-				nbttaglist.appendTag(new NBTTagDouble(vec3d1.y));
-				nbttaglist.appendTag(new NBTTagDouble(vec3d1.z));
-				nbttagcompound.setTag("Pos", nbttaglist);
-				nbttagcompound.setUniqueId("UUID", UUID.randomUUID());
-				Entity entity;
-
-				try
-				{
-					entity = EntityList.createEntityFromNBT(nbttagcompound, world);
-				}
-				catch (Exception var15)
-				{
-					entity = null;
-				}
-
-				if (entity != null)
-				{
-					float f = entity.getMirroredYaw(mirrorIn);
-					f = f + (entity.rotationYaw - entity.getRotatedYaw(rotationIn));
-					entity.setLocationAndAngles(vec3d1.x, vec3d1.y, vec3d1.z, f, entity.rotationPitch);
-					entitiesToAdd.add(entity);
-				}
-			}
-		}
 	}
 
 	private boolean isEmpty()
@@ -301,6 +264,7 @@ public class NxNTemplate extends Template
 		if (size.getX() <= 0 || size.getY() <= 0 || size.getZ() <= 0) return true;
 		return false;
 	}
+
 
 	private BlockInfo getAlternateBlockInfo(BlockInfo templateBlockInfo, Random r) {
 		Block block = templateBlockInfo.blockState.getBlock();
@@ -323,9 +287,14 @@ public class NxNTemplate extends Template
 							templateBlockInfo.blockState.getValue(BlockHorizontal.FACING)
 					);
 
+
+
 			TileEntityChest tileEntityChest = new TileEntityChest();
 			ResourceLocation lootTableRL = new ResourceLocation(lootTable);
-			tileEntityChest.setLootTable(new ResourceLocation(lootTableRL.getResourceDomain(), "chests/" + lootTableRL.getResourcePath()), r.nextLong());
+			final ResourceLocation lootTableName = new ResourceLocation(lootTableRL.getResourceDomain(), "chests/" + lootTableRL.getResourcePath());
+			TemplateManager.notifyLootTable(lootTableName);
+
+			tileEntityChest.setLootTable(lootTableName, r.nextLong());
 			tileEntityChest.setPos(templateBlockInfo.pos);
 			NBTTagCompound chestNbt = new NBTTagCompound();
 			tileEntityChest.writeToNBT(chestNbt);

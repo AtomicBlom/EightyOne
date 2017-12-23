@@ -6,10 +6,7 @@ import com.github.atomicblom.eightyone.blocks.UnbreakableBlock;
 import com.github.atomicblom.eightyone.registration.RegisterMimicBlockEvent;
 import com.github.atomicblom.eightyone.util.IterableHelpers;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Streams;
+import com.google.common.collect.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
@@ -18,6 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.datafix.DataFixer;
 import net.minecraft.util.datafix.FixTypes;
+import net.minecraft.world.storage.loot.LootTableList;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.common.Loader;
@@ -207,6 +205,21 @@ public final class TemplateManager
 
 		Set<NBTTagCompound> seen = ConcurrentHashMap.newKeySet();
 		return Lists.newArrayList(returnedList.stream().filter(x -> IterableHelpers.distinctNbt(x, seen)).iterator());
+	}
+
+	static Set<ResourceLocation> seenLootTables = Sets.newConcurrentHashSet();
+	public static void notifyLootTable(ResourceLocation lootTableName)
+	{
+
+		if (!seenLootTables.contains(lootTableName))
+		{
+			Logger.info("Registering new Loot Table %s", lootTableName);
+			seenLootTables.add(lootTableName);
+			try
+			{
+				LootTableList.register(lootTableName);
+			} catch (Exception e) {}
+		}
 	}
 
 	private static class ConfigFileModContainer extends DummyModContainer {

@@ -61,17 +61,12 @@ public class NxNChunkGenerator implements IChunkGenerator
 		rand.setSeed(x * 0x4f9939f508L + z * 0x1ef1565bd5L);
 		final ChunkPrimer primer = new ChunkPrimer();
 		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
-		final List<Entity> entitiesToAdd = Lists.newArrayList();
-		generateChunk(x, z, primer, tileEntitiesToAdd, entitiesToAdd);
+		generateChunk(x, z, primer, tileEntitiesToAdd);
 
 		final Chunk chunk = new Chunk(world, primer, x, z);
 		for (final TileEntity tileEntity : tileEntitiesToAdd)
 		{
 			chunk.addTileEntity(tileEntity);
-		}
-		for (final Entity entity : entitiesToAdd)
-		{
-			world.spawnEntity(entity);
 		}
 
 		chunk.generateSkylightMap();
@@ -79,8 +74,34 @@ public class NxNChunkGenerator implements IChunkGenerator
 	}
 
 	@Override
-	public void populate(int x, int z)
+	public void populate(int chunkX, int chunkZ)
 	{
+		final int chunkCornerX  = chunkX << 4;
+		final int chunkCornerZ  = chunkZ << 4;
+
+		final int nextChunkX = chunkCornerX + 15;
+		final int nextChunkZ = chunkCornerZ + 15;
+
+		final Room cornerRoom = getRoomAt(chunkCornerX - 10, chunkCornerZ - 10);
+		for (int roomX = cornerRoom.getX(); roomX < nextChunkX + 10; roomX += 10) {
+			for (int roomZ = cornerRoom.getZ(); roomZ < nextChunkZ + 10; roomZ += 10) {
+
+				final Room room = getRoomAt(roomX, roomZ);
+
+				if (!room.isPresent()) continue;
+
+				final RoomTemplate template = room.getTemplate();
+				if (template != null && template.getTemplate().isCustomRoom())
+				{
+					final PlacementSettings placementIn = new PlacementSettings();
+					placementIn.setChunk(new ChunkPos(chunkX, chunkZ));
+
+					final BlockPos templatePosition = new BlockPos(room.getX(), BASE_HEIGHT, room.getZ());
+
+					template.addEntitiesToWorld(world, templatePosition, placementIn);
+				}
+			}
+		}
 	}
 
 	public Room getRoomAt(int x, int z) {
@@ -97,7 +118,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 		}
 	}
 
-	private void generateChunk(int chunkX, int chunkZ, @Nullable ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, List<Entity> entitiesToAdd)
+	private void generateChunk(int chunkX, int chunkZ, @Nullable ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd)
 	{
 		List<Rotation> horizontalRotations = Lists.newArrayList(Rotation.CLOCKWISE_90);
 		List<Rotation> verticalRotations = Lists.newArrayList(Rotation.NONE);
@@ -123,7 +144,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 					placementIn.setChunk(new ChunkPos(chunkX, chunkZ));
 
 					final BlockPos templatePosition = new BlockPos(room.getX(), BASE_HEIGHT, room.getZ());
-					template.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, entitiesToAdd, world, templatePosition, placementIn);
+					template.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, world, templatePosition, placementIn);
 
 					if (room.isDoorwayPresent(EnumFacing.SOUTH)) {
 						final RoomTemplate southPassageTemplate = TemplateManager.getTemplateByChance(new TemplateCharacteristics(Shape.Closed, horizontalRotations), room.getTemplateChance(), RoomPurpose.PASSAGE);
@@ -131,7 +152,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 						{
 							final BlockPos passagePosition = templatePosition.add(2, 0, 7);
 
-							southPassageTemplate.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, entitiesToAdd, world, passagePosition, placementIn);
+							southPassageTemplate.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, world, passagePosition, placementIn);
 						} else {
 							Logger.severe("Could not create doorway, passage not found");
 						}
@@ -143,7 +164,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 						{
 							final BlockPos passagePosition = templatePosition.add(5, 0, 0);
 
-							southPassageTemplate.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, entitiesToAdd, world, passagePosition, placementIn);
+							southPassageTemplate.addBlocksToChunkPrimer(primer, tileEntitiesToAdd, world, passagePosition, placementIn);
 						} else {
 							Logger.severe("Could not create doorway, passage not found");
 						}
