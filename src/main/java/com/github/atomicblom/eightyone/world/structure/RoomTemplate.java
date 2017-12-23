@@ -1,6 +1,6 @@
 package com.github.atomicblom.eightyone.world.structure;
 
-import com.github.atomicblom.eightyone.Logger;
+import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.ResourceLocation;
@@ -66,7 +66,7 @@ public class RoomTemplate {
         return "[" + template.getResourceLocation() + ", rotation=" + rotation + ", mirror=" + mirror + "]";
     }
 
-    public void addBlocksToChunkPrimer(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, World world, BlockPos blockPos, PlacementSettings placementSettings)
+    public void addBlocksToChunkPrimer(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, List<Entity> entitiesToAdd, World world, BlockPos blockPos, PlacementSettings placementSettings)
     {
         placementSettings.setMirror(mirror);
         placementSettings.setRotation(rotation);
@@ -84,6 +84,6 @@ public class RoomTemplate {
                 break;
         }
 
-        template.addBlocksToWorld(primer, tileEntitiesToAdd, world, template.offset(blockPos), placementSettings);
+        template.addBlocksToWorld(primer, tileEntitiesToAdd, entitiesToAdd, world, template.offset(blockPos), placementSettings);
     }
 }

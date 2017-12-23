@@ -13,16 +13,18 @@ import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTUtil;
+import net.minecraft.nbt.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Mirror;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
@@ -203,16 +205,18 @@ public class NxNTemplate extends Template
 	/**
 	 * Adds blocks and entities from this structure to the given world.
 	 *
+	 * @param entitiesToAdd
 	 * @param pos The origin position for the structure
 	 * @param placementIn Placement settings to use
 	 */
-	public void addBlocksToWorld(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, World world, BlockPos pos, PlacementSettings placementIn)
+	public void addBlocksToWorld(ChunkPrimer primer, List<TileEntity> tileEntitiesToAdd, List<Entity> entitiesToAdd, World world, BlockPos pos, PlacementSettings placementIn)
 	{
 		placementIn.setBoundingBoxFromChunk();
 		Random rand = new Random();
 		StructureBoundingBox boundingBox = placementIn.getBoundingBox();
 		rand.setSeed((boundingBox.minX >> 4) * 0x4f9939f508L + (boundingBox.minZ >> 4) * 0x1ef1565bd5L);
 
+		final Rotation rotationIn = placementIn.getRotation();
 		if (!isEmpty())
 		{
 			final Block block = placementIn.getReplacedBlock();
@@ -229,7 +233,7 @@ public class NxNTemplate extends Template
 				if ((block == null || block != processedBlock) && (!placementIn.getIgnoreStructureBlock() || processedBlock != Blocks.STRUCTURE_BLOCK) && (structureboundingbox == null || structureboundingbox.isVecInside(blockpos)))
 				{
 					final IBlockState mirrorState = templateBlockInfo.blockState.withMirror(placementIn.getMirror());
-					final IBlockState finalState = mirrorState.withRotation(placementIn.getRotation());
+					final IBlockState finalState = mirrorState.withRotation(rotationIn);
 
 					if (primer != null)
 					{
@@ -245,10 +249,47 @@ public class NxNTemplate extends Template
 							templateBlockInfo.tileentityData.setInteger("z", blockpos.getZ());
 							tileEntity.readFromNBT(templateBlockInfo.tileentityData);
 							tileEntity.mirror(placementIn.getMirror());
-							tileEntity.rotate(placementIn.getRotation());
+							tileEntity.rotate(rotationIn);
 							tileEntitiesToAdd.add(tileEntity);
 						}
 					}
+				}
+			}
+		}
+
+		for (Template.EntityInfo template$entityinfo : this.entities)
+		{
+			final Mirror mirrorIn = placementIn.getMirror();
+			BlockPos blockpos = transformedBlockPos(placementIn, template$entityinfo.blockPos).add(pos);
+
+			if (boundingBox == null || boundingBox.isVecInside(blockpos))
+			{
+				NBTTagCompound nbttagcompound = template$entityinfo.entityData;
+				Vec3d vec3d = transformedVec3d(template$entityinfo.pos, mirrorIn, rotationIn);
+				Vec3d vec3d1 = vec3d.addVector((double)pos.getX(), (double)pos.getY(), (double)pos.getZ());
+				NBTTagList nbttaglist = new NBTTagList();
+				nbttaglist.appendTag(new NBTTagDouble(vec3d1.x));
+				nbttaglist.appendTag(new NBTTagDouble(vec3d1.y));
+				nbttaglist.appendTag(new NBTTagDouble(vec3d1.z));
+				nbttagcompound.setTag("Pos", nbttaglist);
+				nbttagcompound.setUniqueId("UUID", UUID.randomUUID());
+				Entity entity;
+
+				try
+				{
+					entity = EntityList.createEntityFromNBT(nbttagcompound, world);
+				}
+				catch (Exception var15)
+				{
+					entity = null;
+				}
+
+				if (entity != null)
+				{
+					float f = entity.getMirroredYaw(mirrorIn);
+					f = f + (entity.rotationYaw - entity.getRotatedYaw(rotationIn));
+					entity.setLocationAndAngles(vec3d1.x, vec3d1.y, vec3d1.z, f, entity.rotationPitch);
+					entitiesToAdd.add(entity);
 				}
 			}
 		}

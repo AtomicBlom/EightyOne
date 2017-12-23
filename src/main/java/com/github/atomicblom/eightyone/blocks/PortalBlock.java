@@ -44,11 +44,13 @@ public class PortalBlock extends Block implements ITileEntityProvider
 		}
 		TileEntityPortal tileEntityPortal = (TileEntityPortal)tileEntity;
 
-		if (!tileEntityPortal.checkValidStructure()) {
-			return false;
-		}
+		if (player.isSneaking()) return false;
 
 		if (!player.isRiding() && player.getPassengers().isEmpty() && player.timeUntilPortal <= 0) {
+			if (!tileEntityPortal.checkValidStructure()) {
+				return false;
+			}
+
 			if (player instanceof EntityPlayerMP) {
 				final EntityPlayerMP playerMP = (EntityPlayerMP) player;
 
@@ -57,7 +59,7 @@ public class PortalBlock extends Block implements ITileEntityProvider
 					playerMP.timeUntilPortal = 10;
 				} else {
 
-					// send to twilight
+					// send to the labyrinth
 					if (playerMP.dimension != Reference.DIMENSION_ID) {
 						if (!ForgeHooks.onTravelToDimension(playerMP, Reference.DIMENSION_ID)) return false;
 

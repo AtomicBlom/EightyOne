@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
@@ -23,32 +23,52 @@ import java.util.Comparator;
 @SuppressWarnings("ALL")
 public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 {
-	private final String portalTexture = new ResourceLocation(Reference.MOD_ID, "blocks/portal3").toString();
-	private final String portalTexture_frame = new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame2").toString();
+	private final String portalTexture_active = new ResourceLocation(Reference.MOD_ID, "blocks/portal_active").toString();
+	private final String portalTexture_disabled = new ResourceLocation(Reference.MOD_ID, "blocks/portal_disabled").toString();
+	private final String portalTexture_frame = new ResourceLocation(Reference.MOD_ID, "blocks/portal_frame").toString();
 	private final String bleah = new ResourceLocation("minecraft", "blocks/concrete_white").toString();
 
-	private BufferBuilder portalArtifact = null;
+	private BufferBuilder activePortalArtifact = null;
+	private BufferBuilder disabledPortalArtifact = null;
 	private BufferBuilder portalFrame = null;
+	private BufferBuilder cube = null;
+
+	private Comparator<TileEntityPortal.PortalProgressData> viewComparator = new Comparator<TileEntityPortal.PortalProgressData>() {
+		@Override
+		public int compare(TileEntityPortal.PortalProgressData portalProgressData, TileEntityPortal.PortalProgressData t1)
+		{
+			//return Double.compare(t1.distanceFromPlayer, portalProgressData.distanceFromPlayer);
+			return Double.compare(portalProgressData.distanceFromPlayer, t1.distanceFromPlayer);
+		}
+	};
+
+	TileEntityPortal.PortalProgressData[] progressDataEntries = null;
+	final WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
 
 	@Override
 	public void render(TileEntityPortal te, double x, double y, double z, float partialTicks, int destroyStage, float alphalpha)
 	{
-		if (portalArtifact == null) {
-			portalArtifact = createArtifactBuffer();
+		if (activePortalArtifact == null) {
+			activePortalArtifact = createArtifactBuffer(portalTexture_active);
+		}
+		if (disabledPortalArtifact == null) {
+			disabledPortalArtifact = createArtifactBuffer(portalTexture_disabled);
 		}
 		if (portalFrame == null) {
 			portalFrame = createFrameBuffer();
 		}
-
-		final WorldVertexBufferUploader uploader = new WorldVertexBufferUploader();
+		if (cube == null) {
+			cube = makeCube();
+		}
 
 		bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
+		final int pass = MinecraftForgeClient.getRenderPass();
+		if (pass == 1) return;
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y, z);
 
-		final int pass = MinecraftForgeClient.getRenderPass();
-		if (pass == 0)
+		if (pass == 0 && !te.isValid())
 		{
 			//Translucent Render Pass A - fill Z-Buffer
 			GlStateManager.enableBlend();
@@ -72,16 +92,28 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 			GlStateManager.disableAlpha();
 		}
 
-		final float yRotation = te.getYRotation() + partialTicks;
-		te.setYRotation(yRotation);
+		float yRotation = te.getYRotation() + partialTicks;
 
-		final long currentPulse = Minecraft.getSystemTime() / 3000;
+
+		long systemTime = Minecraft.getSystemTime();
+
+		if (!te.isValid()) {
+			systemTime = 0;
+			yRotation = 0;
+		}
+
+		te.setYRotation(yRotation);
+		final long currentPulse = systemTime / 3000;
 		if (te.getPulse() != currentPulse) {
 			te.setPulse(currentPulse);
 			te.setPulseRotation(te.getYRotation());
 		}
-		final long currentPulseTime = Minecraft.getSystemTime() % 3000;
-		final float pulseRotation = te.getPulseRotation() + partialTicks / 2;
+		final long currentPulseTime = systemTime % 3000;
+		float pulseRotation = te.getPulseRotation() + partialTicks / 2;
+		if (!te.isValid()) {
+			pulseRotation = 0;
+		}
+
 		te.setPulseRotation(pulseRotation);
 
 		float scale = 1;
@@ -104,13 +136,15 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 
 		if (pass == 0)
 		{
+			BufferBuilder artifactModel = te.isValid() ? activePortalArtifact : disabledPortalArtifact;
+
 			//Solid Render Pass
-			renderRotatingPortal(uploader, yRotation, scale, 1.0f);
+			renderRotatingPortal(uploader, artifactModel, yRotation, scale, 1.0f);
 		}
 		scale = 1 + currentPulseTime / 3000.0f;
 		final float alpha = 1 - (currentPulseTime / 1000.0f);
 
-		if (alpha > 0 && pass == 0)
+		if (alpha > 0 && pass == 0 && !te.isValid())
 		{
 			//Translucent Render Pass A - fill Z-Buffer
 			GlStateManager.enableBlend();
@@ -121,47 +155,54 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 			GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0f);
 			GlStateManager.colorMask(false, false, false, false);
 
-			renderRotatingPortal(uploader, pulseRotation, scale, alpha);
+			renderRotatingPortal(uploader, disabledPortalArtifact, pulseRotation, scale, alpha);
 
 			//Translucent Render Pass B - Render portal
 			GlStateManager.depthFunc(GL11.GL_EQUAL);
 			GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0.0f);
 			GlStateManager.colorMask(true, true, true, true);
 
-			renderRotatingPortal(uploader, pulseRotation, scale, alpha);
+			renderRotatingPortal(uploader, disabledPortalArtifact, pulseRotation, scale, alpha);
 
 			GlStateManager.depthFunc(GL11.GL_LEQUAL);
 			GlStateManager.disableBlend();
 			GlStateManager.disableAlpha();
 		}
 
+		GlStateManager.popMatrix();
 
 
-		final BufferBuilder bufferBuilder = makeCube();
 
 		final TileEntityPortal.PortalProgressData[] originalProgressData = te.getProgressData();
 
-		if (originalProgressData != null) {
-			final TileEntityPortal.PortalProgressData[] progressDataEntries = new TileEntityPortal.PortalProgressData[originalProgressData.length];
+		if (originalProgressData != null && !te.isValid()) {
+			if (progressDataEntries == null || progressDataEntries.length != originalProgressData.length) {
+				progressDataEntries = new TileEntityPortal.PortalProgressData[originalProgressData.length];
+			}
 
 			for (int i = 0; i < progressDataEntries.length; ++i) {
 				progressDataEntries[i] = originalProgressData[i];
 				progressDataEntries[i].distanceFromPlayer = progressDataEntries[i].pos.distanceSq(x, y, z);
 			}
-			Arrays.sort(progressDataEntries, new Comparator<TileEntityPortal.PortalProgressData>() {
-				@Override
-				public int compare(TileEntityPortal.PortalProgressData portalProgressData, TileEntityPortal.PortalProgressData t1)
-				{
-					//return Double.compare(t1.distanceFromPlayer, portalProgressData.distanceFromPlayer);
-					return Double.compare(portalProgressData.distanceFromPlayer, t1.distanceFromPlayer);
-				}
-			});
+			Arrays.sort(progressDataEntries, viewComparator);
 
-			final long currentPulse2 = Minecraft.getSystemTime() % 8000;
+			final long currentPulse2 = systemTime % 8000;
 
 			GlStateManager.enableBlend();
 			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			GlStateManager.enableAlpha();
+
+			double speed = 3.0f;
+
+			double delayBlocks = 18;//blocksa
+			double largestSize = 1.3f;//Scale compared to a block
+			double tailLength = 8;//blocks
+			double scaleFactor = largestSize / tailLength;
+
+			final long totalWorldTime = Minecraft.getSystemTime();
+			double seconds = (totalWorldTime /1000.0)*speed;
+			final BlockPos tePos = te.getPos();
+
 			for (TileEntityPortal.PortalProgressData progressData : progressDataEntries)
 			{
 				if (progressData.currentlyValid) {
@@ -170,57 +211,69 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 
 				float red = 0.75f;
 				float green = 0.75f;
+				float blue = 0.75f;
 
-				final float offsetProgress = (currentPulse2 - progressData.renderSet * 200) / 2000.0f;
-				if (progressData.currentlyAir && offsetProgress >= 1.2) continue;
-				if (offsetProgress <= 0) continue;
+				float blockScale = (float)(((progressData.renderSet + seconds) % delayBlocks) * scaleFactor) ;
 
 				float alpha2 = 1;
-				if (offsetProgress >= 1.7) {
-					//continue;
-					alpha2 = 1;
-				}
 
-
-				if (offsetProgress > 1)
+				if (progressData.currentlyAir)
 				{
-					alpha2 = 1 - ((offsetProgress - 1) * 5);
+					if (blockScale >= 1.2) continue;
+					if (blockScale <= 0) continue;
 
-				} else if (offsetProgress < 0.2)
-				{
-					alpha2 = ((offsetProgress) * 5);
-				}
+					if (blockScale > 1)
+					{
+						alpha2 = 1 - ((blockScale - 1) * 5);
 
-				if (progressData.currentlyAir) {
+					} else if (blockScale < 0.2)
+					{
+						alpha2 = ((blockScale) * 5);
+					}
+
 					green = 1;
 					alpha2 /= 2;
 				} else {
+					if (blockScale >= 1.5) continue;
+					if (blockScale <= 1) continue;
+
+					if (blockScale > 1)
+					{
+						alpha2 = 1 - ((blockScale - 1) * 2.5f);
+
+					}
+
+					green = 0.25f;
 					red = 1;
+					blue = 0.25f;
+					alpha2 /= 2;
 				}
 
 
 				GlStateManager.color(
 						red,
 						green,
-						0.75f,
+						blue,
 						alpha2);
 
 				GlStateManager.pushMatrix();
 
-				GlStateManager.translate(progressData.pos.getX() + 0.5, progressData.pos.getY() - 5 + 0.5, progressData.pos.getZ() + 0.5);
-				GlStateManager.scale(offsetProgress, offsetProgress, offsetProgress);
+				GlStateManager.translate(x, y, z);
+
+				GlStateManager.translate(progressData.pos.getX() - tePos.getX() + 0.5, progressData.pos.getY()- tePos.getY() + 0.5, progressData.pos.getZ() - tePos.getZ() + + 0.5);
+				GlStateManager.scale(blockScale, blockScale, blockScale);
 
 				GlStateManager.depthFunc(GL11.GL_LEQUAL);
 				GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0f);
 				GlStateManager.colorMask(false, false, false, false);
 
-				uploader.draw(bufferBuilder);
+				uploader.draw(cube);
 
 				GlStateManager.depthFunc(GL11.GL_EQUAL);
 				GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0.0f);
 				GlStateManager.colorMask(true, true, true, true);
 
-				uploader.draw(bufferBuilder);
+				uploader.draw(cube);
 
 				GlStateManager.popMatrix();
 			}
@@ -230,7 +283,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 			GlStateManager.disableAlpha();
 		}
 
-		GlStateManager.popMatrix();
+
 	}
 
 	private void renderFrame(WorldVertexBufferUploader uploader, float alpha)
@@ -244,7 +297,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 		uploader.draw(portalFrame);
 	}
 
-	private void renderRotatingPortal(WorldVertexBufferUploader uploader, float yRotation, float scale, float alpha)
+	private void renderRotatingPortal(WorldVertexBufferUploader uploader, BufferBuilder model, float yRotation, float scale, float alpha)
 	{
 		GlStateManager.pushMatrix();
 
@@ -259,7 +312,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 				(alpha / 4) + 0.75f,
 				alpha);
 
-		uploader.draw(portalArtifact);
+		uploader.draw(model);
 
 		GlStateManager.popMatrix();
 	}
@@ -587,10 +640,10 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 		return bufferbuilder;
 	}
 
-	private BufferBuilder createArtifactBuffer()
+	private BufferBuilder createArtifactBuffer(String texture)
 	{
 		final TextureMap textureMapBlocks = Minecraft.getMinecraft().getTextureMapBlocks();
-		final TextureAtlasSprite sprite = textureMapBlocks.getAtlasSprite(portalTexture);
+		final TextureAtlasSprite sprite = textureMapBlocks.getAtlasSprite(texture);
 
 		final BufferBuilder bufferbuilder = new ReusableBufferBuilder(2097152);
 
@@ -736,6 +789,5 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 				.tex(sprite.getInterpolatedU(u), sprite.getInterpolatedV(v))
 				.normal(normal.x, normal.y, normal.z)
 				.endVertex();
-
 	}
 }

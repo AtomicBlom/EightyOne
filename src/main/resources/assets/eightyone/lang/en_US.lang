@@ -5,4 +5,4 @@ tile.eightyone:secret_block.name=Hidden Passage
 tile.eightyone:portal.name=Portal to the Labyrinth
 tile.eightyone:secret_pressure_plate.name=Hidden Pressure Plate
 
-itemGroup.eightyone:EightyOne
+itemGroup.eightyone=The Labyrinth (EightyOne)

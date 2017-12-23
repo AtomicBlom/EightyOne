@@ -36,7 +36,8 @@ public class BlockRegistration
 	public static void onRegisterBlocks(RegistryEvent.Register<Block> event) {
 		final IForgeRegistry<Block> registry = event.getRegistry();
 
-		registerBlock(registry, new PortalBlock(), Reference.Blocks.PORTAL);
+		registerBlock(registry, new PortalBlock(), Reference.Blocks.PORTAL)
+			.setCreativeTab(Reference.CREATIVE_TAB);
 		registerBlock(registry, new DungeonBlock(), Reference.Blocks.DUNGEON_BLOCK);
 		registerBlock(registry, new SecretBlock(), Reference.Blocks.SECRET_BLOCK);
 		registerBlock(registry, new PlaceholderLootChest(), Reference.Blocks.PLACEHOLDER_LOOT_CHEST);
@@ -81,11 +82,12 @@ public class BlockRegistration
 		GameRegistry.registerTileEntity(TileEntityPlaceholderLootChest.class, "placeholder_loot_chest");
 	}
 
-	private static void registerBlock(IForgeRegistry<Block> registry, Block block, ResourceLocation registryName)
+	private static Block registerBlock(IForgeRegistry<Block> registry, Block block, ResourceLocation registryName)
 	{
 		registry.register(block
 				.setRegistryName(registryName)
 				.setUnlocalizedName(registryName.toString())
 		);
+		return block;
 	}
 }

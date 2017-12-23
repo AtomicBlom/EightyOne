@@ -80,9 +80,6 @@ public class EightyOneTeleporter extends Teleporter {
 
     private void renderPortalToWorld(World world, BlockPos blockPos, boolean fillUnderneath, TemplateCharacteristics characteristics) {
 		Logger.info("renderPortalToWorld: %s fillUnderneath: %s", blockPos, fillUnderneath);
-		ResourceLocation templateName = fillUnderneath ? new ResourceLocation(Reference.MOD_ID, "portal_overworld")
-				:new ResourceLocation(Reference.MOD_ID, "portal");
-		//final NxNTemplate spawn = TemplateManager.getTemplateByName(templateName);
 	    double chance = world.rand.nextDouble();
 	    final RoomTemplate spawn = TemplateManager.getTemplateByChance(characteristics, chance, RoomPurpose.PORTAL);
         final PlacementSettings placementSettings = new PlacementSettings();
