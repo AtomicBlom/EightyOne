@@ -27,9 +27,28 @@ public class EightyOne
     public static EightyOne instance;
     private WorldType worldType;
 
+    public static boolean DEBUG_FORCE_ALLOW_PORTAL = true;
+    public static boolean DEBUG_SHOW_ROOM_INFO = true;
+
+    public static final String IS_CI_BUILD = "@CI_BUILD@";
+
+    public static boolean isReleaseBuild() { return Boolean.parseBoolean(IS_CI_BUILD); }
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        if (isReleaseBuild())
+        {
+            //Force developer derps off.
+            DEBUG_FORCE_ALLOW_PORTAL = false;
+            //TODO: Disable for v1
+            DEBUG_SHOW_ROOM_INFO = true;
+        } else
+        {
+            Logger.info("You are not running a release build of EightyOne. This message is purely for informational purposes.");
+        }
+
         TemplateManager.setConfigurationDirectory(event.getModConfigurationDirectory());
+
         TemplateManager.findTemplates(false);
         PacketHandler.registerMessages(Reference.MOD_ID);
     }

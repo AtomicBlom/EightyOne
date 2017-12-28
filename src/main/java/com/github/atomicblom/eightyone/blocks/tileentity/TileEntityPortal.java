@@ -1,5 +1,6 @@
 package com.github.atomicblom.eightyone.blocks.tileentity;
 
+import com.github.atomicblom.eightyone.EightyOne;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import net.minecraft.block.Block;
@@ -16,12 +17,13 @@ import java.util.Dictionary;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.github.atomicblom.eightyone.EightyOne.DEBUG_FORCE_ALLOW_PORTAL;
+
 public class TileEntityPortal extends TileEntity implements ITickable
 {
 	private float yRotation;
 	private long pulse;
 	private float pulseRotation;
-	private long nextUpdate;
 
 	@Override
 	public boolean hasFastRenderer()
@@ -56,19 +58,6 @@ public class TileEntityPortal extends TileEntity implements ITickable
 	{
 		return pulseRotation;
 	}
-
-//	@Override
-//	public void update()
-//	{
-//		if (world.isRemote) {
-//			if (world.getTotalWorldTime() > nextUpdate) {
-//
-//				nextUpdate = world.getTotalWorldTime() + 100; // 5 seconds from now
-//				MinecraftForge.EVENT_BUS.post(new CheckTileEntityVisibleEvent(this));
-//			}
-//		}
-//	}
-
 
 	AxisAlignedBB axisAlignedBB;
 
@@ -276,7 +265,7 @@ public class TileEntityPortal extends TileEntity implements ITickable
 			isValid &= progressData[i].checkBlock(checkBlock);
 		}
 
-		return isValid;
+		return EightyOne.DEBUG_FORCE_ALLOW_PORTAL ? true : isValid;
 	}
 
 	private void createProgressData()

@@ -5,8 +5,10 @@ import org.apache.logging.log4j.LogManager;
 
 public enum Logger
 {
-    INSTANCE;
+    INSTANCE(true),
+    NO_LOG(false);
 
+    private final boolean enabled;
     @SuppressWarnings({"NonSerializableFieldInSerializableClass", "InstanceVariableMayNotBeInitialized"})
     private org.apache.logging.log4j.Logger logger;
 
@@ -54,9 +56,17 @@ public enum Logger
         }
     }
 
+    Logger(boolean enabled) {
+
+        this.enabled = enabled;
+    }
+
     private void log(final Level level, final String format, final Object... data)
     {
-        //noinspection ChainedMethodCall
-        getLogger().log(level, String.format(format, data));
+        if (enabled)
+        {
+            //noinspection ChainedMethodCall
+            getLogger().log(level, String.format(format, data));
+        }
     }
 }

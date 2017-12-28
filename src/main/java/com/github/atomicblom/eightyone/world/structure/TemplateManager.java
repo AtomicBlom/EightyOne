@@ -1,5 +1,6 @@
 package com.github.atomicblom.eightyone.world.structure;
 
+import com.github.atomicblom.eightyone.EightyOne;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.UnbreakableBlock;
@@ -17,11 +18,10 @@ import net.minecraft.util.datafix.DataFixer;
 import net.minecraft.util.datafix.FixTypes;
 import net.minecraft.world.storage.loot.LootTableList;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.fml.common.DummyModContainer;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.ModContainer;
+import net.minecraftforge.fml.common.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.server.FMLServerHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import java.io.File;
@@ -243,8 +243,13 @@ public final class TemplateManager
 	}
 
 	public static void findTemplates(boolean readFromConfigDirectory) {
-		final Minecraft minecraft = Minecraft.getMinecraft();
-		final DataFixer dataFixer = minecraft.getDataFixer();
+		final DataFixer dataFixer;
+		if (FMLCommonHandler.instance().getSide() == Side.CLIENT)
+		{
+			dataFixer = Minecraft.getMinecraft().getDataFixer();
+		} else {
+			dataFixer= FMLServerHandler.instance().getServer().getDataFixer();
+		}
 
 		spawnableStructureNames.clear();
 		TemplateCache.clear();
@@ -263,6 +268,8 @@ public final class TemplateManager
 			}
 		}
 
+		Logger logger = EightyOne.DEBUG_SHOW_ROOM_INFO ? Logger.INSTANCE : Logger.NO_LOG;
+
 		for (final ModContainer mod : activeModList)
 		{
 			final String base = readFromConfigDirectory ?
@@ -278,7 +285,7 @@ public final class TemplateManager
 						final String name = PATH_SEPERATOR.matcher(FilenameUtils.removeExtension(relative)).replaceAll("/");
 						final ResourceLocation key = new ResourceLocation(mod.getModId(), name);
 
-						Logger.info("Loading structure %s", key);
+						logger.info("Loading structure %s", key);
 
 						InputStream reader = null;
 						try
@@ -291,10 +298,10 @@ public final class TemplateManager
 
 							final TemplateCharacteristics characteristics = template.getCharacteristics();
 
-							Logger.info("    Template's shape is %s", characteristics.getShape());
+							logger.info("    Template's shape is %s", characteristics.getShape());
 							for (final Rotation rotation : characteristics.getTemplateRotations())
 							{
-								Logger.info("    Template could be interpreted as being rotated %s", rotation);
+								logger.info("    Template could be interpreted as being rotated %s", rotation);
 							}
 
 							TemplateCache.put(key, template);

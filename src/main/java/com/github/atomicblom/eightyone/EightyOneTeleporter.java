@@ -47,7 +47,7 @@ public class EightyOneTeleporter extends Teleporter {
     public boolean makePortal(Entity entityIn) {
 		Logger.info("makePortal: %s", entityIn);
 
-		final WorldProvider provider = entityIn.getEntityWorld().provider;
+		final WorldProvider provider = world.provider;
         BlockPos position = entityIn.getPosition().down();
         if (provider instanceof NxNWorldProvider) {
             final NxNChunkGenerator chunkGenerator = (NxNChunkGenerator) provider.createChunkGenerator();
@@ -57,22 +57,18 @@ public class EightyOneTeleporter extends Teleporter {
                 final Room spawnRoom = chunkGenerator.getRoomAt(pos.getX(), pos.getZ());
                 Logger.info("makePortal: Checking if room present at %d,%d", spawnRoom.getX(), spawnRoom.getZ());
                 if (spawnRoom.isPresent()) {
-					int height = entityIn.world.getHeight(pos.getX(), pos.getZ());
-					position = new BlockPos(pos.getX(), height, pos.getZ());
-
-
-
-                    renderPortalToWorld(entityIn.world, position, false, spawnRoom.getCharacteristics());
+					position = new BlockPos(pos.getX(), chunkGenerator.getFloorHeight(), pos.getZ());
+                    renderPortalToWorld(world, position, false, spawnRoom.getCharacteristics());
                     return true;
                 }
             }
         } else {
         	Logger.info("makePortal: Creating portal at player location");
-			int height = entityIn.world.getHeight(position.getX() + 1, position.getZ() + 1);
+			int height = world.getHeight(position.getX() + 1, position.getZ() + 1);
             position = new BlockPos(position.getX() + 1, height, position.getZ() + 1);
 
             TemplateCharacteristics templateCharacteristics = new TemplateCharacteristics(Shape.Straight, Arrays.asList(net.minecraft.util.Rotation.values()));
-            renderPortalToWorld(entityIn.world, position, true, templateCharacteristics);
+            renderPortalToWorld(world, position, true, templateCharacteristics);
             return true;
         }
         return false;
@@ -87,12 +83,13 @@ public class EightyOneTeleporter extends Teleporter {
         	Logger.severe("Could not load portal template!");
         }
         final NxNTemplate template = spawn.getTemplate();
-        template.addBlocksToWorld(world, blockPos, placementSettings);
+
+	    spawn.addBlocksToWorld(world, blockPos, placementSettings);
 
         if (fillUnderneath)
         {
             final BlockPos size = template.getSize();
-            for (final MutableBlockPos pos : BlockPos.getAllInBoxMutable(blockPos, blockPos.add(size)))
+            for (final MutableBlockPos pos : BlockPos.getAllInBoxMutable(blockPos, blockPos.add(new BlockPos(size.getX(), 0, size.getZ()))))
             {
                 final IBlockState blockStateToUse = world.getBlockState(pos);
                 final MutableBlockPos fillPos = new MutableBlockPos(pos.down());
@@ -190,11 +187,6 @@ public class EightyOneTeleporter extends Teleporter {
 
 						if (world.getBlockState(selectedPos).getBlock() == BlockLibrary.portal)
 						{
-//							for (scanPos = selectedPos.down(); world.getBlockState(scanPos).getBlock() == BlockLibrary.portal; scanPos = scanPos.down())
-//							{
-//								selectedPos = scanPos;
-//							}
-
 							final double distanceToEntity = selectedPos.distanceSq(entityPosition);
 
 							if (currentDistance < 0.0D || distanceToEntity < currentDistance)
@@ -217,8 +209,8 @@ public class EightyOneTeleporter extends Teleporter {
 				destinationCoordinateCache.put(chunkId, new PortalPosition(blockpos, world.getTotalWorldTime()));
 			}
 
-			double newX = blockpos.getX() + 0.5D;
-			double newZ = blockpos.getZ() + 0.5D;
+			double newX = blockpos.getX() + 0.5D + 1;
+			double newZ = blockpos.getZ() + 0.5D + 1;
 			double newY = blockpos.getY();
 
 			Logger.info("Player location set to %s", blockpos);

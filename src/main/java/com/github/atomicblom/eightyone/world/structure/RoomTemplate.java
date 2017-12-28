@@ -40,10 +40,10 @@ public class RoomTemplate {
         return location;
     }
 
-    public void addBlocksToWorldChunk(World world, BlockPos blockPos, PlacementSettings placementSettings) {
+    public void addBlocksToWorld(World world, BlockPos blockPos, PlacementSettings placementSettings) {
         blockPos = updateTemplatePlacement(blockPos, placementSettings);
 
-        template.addBlocksToWorldChunk(world, template.offset(blockPos), placementSettings);
+        template.addBlocksToWorld(world, template.offset(blockPos), placementSettings);
     }
 
     @Override

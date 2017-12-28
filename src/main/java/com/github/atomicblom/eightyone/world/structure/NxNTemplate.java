@@ -1,6 +1,7 @@
 package com.github.atomicblom.eightyone.world.structure;
 
 import com.github.atomicblom.eightyone.BlockLibrary;
+import com.github.atomicblom.eightyone.EightyOne;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.Reference;
 import com.github.atomicblom.eightyone.blocks.UnbreakableBlock;
@@ -118,6 +119,9 @@ public class NxNTemplate extends Template
 		int purposeYOffset = 0;
 		int yOffset = 0;
 
+		Logger logger = EightyOne.DEBUG_SHOW_ROOM_INFO ? Logger.INSTANCE : Logger.NO_LOG;
+
+		logger.info("pre-processing room %s", resourceLocation);
 		final PlacementSettings placementSettings = new PlacementSettings();
 		final Map<BlockPos, String> dataBlocks = getDataBlocks(BlockPos.ORIGIN, placementSettings);
 		for (final Entry<BlockPos, String> dataBlock : dataBlocks.entrySet()) {
@@ -129,10 +133,10 @@ public class NxNTemplate extends Template
 
 				final EnumFacing quadrant = getQuadrant(location, getSize().getZ());
 				if (quadrant == null) {
-					Logger.warning("    It looks like a structure has an doorway placed on a diagonal. This is not supported, location %s", location);
+					logger.warning("    It looks like a structure has an doorway placed on a diagonal. This is not supported, location %s", location);
 				} else
 				{
-					Logger.info("    data block at location %s is an entrance for %s", location, quadrant);
+					logger.info("    data block at location %s is an entrance for %s", location, quadrant);
 					addEntrance(quadrant);
 				}
 			} else if (dataValue.startsWith("not_spawnable")){
@@ -146,25 +150,24 @@ public class NxNTemplate extends Template
 					purpose = RoomPurpose.valueOf(dataValue.substring("purpose:".length()).trim().toUpperCase());
 					purposeYOffset = -location.getY();
 					setYOffsetFromPurpose = true;
-					Logger.info("    data block at location %s set the purpose of the template to ", location, purpose);
+					logger.info("    data block at location %s set the purpose of the template to %s", location, purpose);
 				} catch (Exception e) {
-					Logger.severe("Could not parse purpose data block");
+					logger.severe("Could not parse purpose data block");
 				}
 			}
 		}
 
 		if (setYOffsetFromDoorway) {
-
 			this.yOffset = doorwayYOffset;
-			Logger.info("    yOffset has been set to %d because of doorways", this.yOffset);
+			logger.info("    yOffset has been set to %d because of doorways", this.yOffset);
 		}
 		else if (setYOffsetFromPurpose) {
 			this.yOffset = purposeYOffset;
-			Logger.info("    yOffset has been set to %d because of purpose", this.yOffset);
+			logger.info("    yOffset has been set to %d because of purpose", this.yOffset);
 		}
 		else {
 			this.yOffset = yOffset;
-			Logger.info("    yOffset has been set to %d because of an explicit y_offset data block", this.yOffset);
+			logger.info("    yOffset has been set to %d because of an explicit y_offset data block", this.yOffset);
 		}
 	}
 
