@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 public class NxNChunkGenerator implements IChunkGenerator
 {
 	private static final int ROOM_SET_SIZE = 5;
-	private static final int BASE_HEIGHT = 192;
+	private static final int BASE_HEIGHT = 24;
 	private final World world;
 	private final long seed;
 	private final boolean mapFeaturesEnabled;
@@ -64,39 +64,39 @@ public class NxNChunkGenerator implements IChunkGenerator
 		rand.setSeed(x * 0x4f9939f508L + z * 0x1ef1565bd5L);
 		final ChunkPrimer primer = new ChunkPrimer();
 
-		IBlockState darkAir = BlockLibrary.dark_air.getDefaultState();
-
-		for (int blockX = 0; blockX < 16; ++blockX) {
-			for (int blockZ = 0; blockZ < 16; ++blockZ) {
-				for (int blockY = 0; blockY < BASE_HEIGHT-16; ++blockY) {
-					primer.setBlockState(blockX, blockY, blockZ, darkAir);
-				}
-			}
-		}
+//		IBlockState darkAir = BlockLibrary.dark_air.getDefaultState();
+//		IBlockState stone = Blocks.STONE.getDefaultState();
+//
+//		for (int blockX = 0; blockX < 16; ++blockX) {
+//			for (int blockZ = 0; blockZ < 16; ++blockZ) {
+//				for (int blockY = 0; blockY < BASE_HEIGHT-16; ++blockY) {
+//					primer.setBlockState(blockX, blockY, blockZ, stone);
+//				}
+//			}
+//		}
 
 		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
 		generateChunk(x, z, primer, tileEntitiesToAdd);
 
-		IBlockState defaultState = Blocks.AIR.getDefaultState();
-
-		for (int blockX = 0; blockX < 16; ++blockX) {
-			for (int blockZ = 0; blockZ < 16; ++blockZ) {
-				boolean hasRoom = false;
-				for (int blockY = BASE_HEIGHT-16; blockY <= 255 ; ++blockY) {
-					IBlockState blockState = primer.getBlockState(blockX, blockY, blockZ);
-
-					if (blockState != darkAir && blockState != defaultState) {
-						hasRoom = true;
-						break;
-					}
-				}
-				if (!hasRoom) {
-
-					primer.setBlockState(blockX, 255, blockZ, darkAir);
-
-				}
-			}
-		}
+//		IBlockState defaultState = Blocks.AIR.getDefaultState();
+//		for (int blockX = 0; blockX < 16; ++blockX) {
+//			for (int blockZ = 0; blockZ < 16; ++blockZ) {
+//				boolean hasRoom = false;
+//				for (int blockY = BASE_HEIGHT-16; blockY <= 255 ; ++blockY) {
+//					IBlockState blockState = primer.getBlockState(blockX, blockY, blockZ);
+//
+//					if (blockState != darkAir && blockState != defaultState) {
+//						hasRoom = true;
+//						break;
+//					}
+//				}
+//				if (!hasRoom) {
+//
+//					primer.setBlockState(blockX, 255, blockZ, darkAir);
+//
+//				}
+//			}
+//		}
 
 		final Chunk chunk = new Chunk(world, primer, x, z);
 		for (final TileEntity tileEntity : tileEntitiesToAdd)

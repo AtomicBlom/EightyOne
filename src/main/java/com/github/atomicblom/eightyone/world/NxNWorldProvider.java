@@ -17,7 +17,7 @@ public class NxNWorldProvider extends WorldProvider
 	protected void init()
 	{
 		super.init();
-		world.setSeaLevel(192);
+		world.setSeaLevel(24);
 	}
 
 	@Override
@@ -68,11 +68,11 @@ public class NxNWorldProvider extends WorldProvider
 		return 256;
 	}
 
-	@Override
-	public double getVoidFogYFactor()
-	{
-		return 0.75;
-	}
+//	@Override
+//	public double getVoidFogYFactor()
+//	{
+//		return 0.75;
+//	}
 
 	@Override
 	public BlockPos getRandomizedSpawnPoint()
