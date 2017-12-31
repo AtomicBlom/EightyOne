@@ -7,8 +7,10 @@ import com.github.atomicblom.eightyone.blocks.properties.MimicItemStackUtil;
 import com.github.atomicblom.eightyone.blocks.tileentity.TileEntityDungeonBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
+import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.util.ITooltipFlag;
@@ -89,8 +91,123 @@ public class UnbreakableBlock extends Block
 
 	@Override
 	@Deprecated
-	public boolean isOpaqueCube(IBlockState iBlockState) {
+	public boolean isOpaqueCube(IBlockState state) {
+		if (mimicStates == null) return false;
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isOpaqueCube(state);
+		}
 		return false;
+	}
+
+	@Override
+	@Deprecated
+	public int getLightOpacity(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().getLightOpacity(state);
+		}
+		return 0;
+	}
+
+	@Override
+	@Deprecated
+	public Material getMaterial(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().getMaterial(state);
+		}
+		return Material.GROUND;
+	}
+
+	@Override
+	@Deprecated
+	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().getBlockFaceShape(worldIn, state, pos, face);
+		}
+		return super.getBlockFaceShape(worldIn, state, pos, face);
+	}
+
+	@Override
+	@Deprecated
+	public int getLightValue(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().getLightValue(state);
+		}
+		return super.getLightValue(state);
+	}
+
+	@Override
+	@Deprecated
+	public boolean isFullBlock(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isFullBlock(state);
+		}
+		return super.isFullBlock(state);
+	}
+
+	@Override
+	@Deprecated
+	public boolean isTopSolid(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isTopSolid(state);
+		}
+		return super.isTopSolid(state);
+	}
+
+	@Override
+	@Deprecated
+	public boolean isTranslucent(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isTranslucent(state);
+		}
+		return super.isTranslucent(state);
+	}
+
+	@Override
+	@Deprecated
+	public boolean isNormalCube(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isNormalCube(state);
+		}
+		return super.isNormalCube(state);
+	}
+
+	@Override
+	@Deprecated
+	public boolean isFullCube(IBlockState state)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isFullCube(state);
+		}
+		return super.isFullCube(state);
+	}
+
+	@Override
+	@Deprecated
+	public boolean isSideSolid(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing side)
+	{
+		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
+		if (mimicBlockState != null) {
+			return mimicBlockState.getBlock().isSideSolid(state, world, pos, side);
+		}
+		return super.isSideSolid(state, world, pos, side);
 	}
 
 	/**
@@ -147,6 +264,7 @@ public class UnbreakableBlock extends Block
 	}*/
 
 	@Override
+	@Deprecated
 	public IBlockState getStateFromMeta(int meta)
 	{
 		if (meta >= this.mimicStates.length) {
@@ -178,24 +296,8 @@ public class UnbreakableBlock extends Block
 	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos,
 	                              EntityPlayer player) {
 		final ItemStack pickBlock = super.getPickBlock(state, target, world, pos, player);
-		//MimicItemStackUtil.setMimickedBlock(pickBlock, getMimicBlock(world, pos));
 		return pickBlock;
 	}
-
-	/*private static void setMimicBlock(@Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nullable IBlockState paintSource) {
-		final TileEntity te = world.getTileEntity(pos);
-		if (te instanceof IMimicTileEntity) {
-			((IMimicTileEntity) te).setCopiedBlock(paintSource);
-		}
-	}
-
-	private static IBlockState getMimicBlock(@Nonnull IBlockAccess world, @Nonnull BlockPos pos) {
-		final TileEntity te = world.getTileEntity(pos);
-		if (te instanceof IMimicTileEntity) {
-			return ((IMimicTileEntity) te).getCopiedBlock();
-		}
-		return null;
-	}*/
 
 	public void materialize()
 	{

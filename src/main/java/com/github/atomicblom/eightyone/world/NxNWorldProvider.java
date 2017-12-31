@@ -61,4 +61,25 @@ public class NxNWorldProvider extends WorldProvider
 	{
 		return 0.0D;
 	}
+
+	@Override
+	public float getCloudHeight()
+	{
+		return 256;
+	}
+
+	@Override
+	public double getVoidFogYFactor()
+	{
+		return 0.75;
+	}
+
+	@Override
+	public BlockPos getRandomizedSpawnPoint()
+	{
+		BlockPos ret = this.world.getSpawnPoint();
+
+
+		return ret;
+	}
 }

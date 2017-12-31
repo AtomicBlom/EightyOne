@@ -39,6 +39,7 @@ public final class Reference {
 		public static final ResourceLocation SECRET_BLOCK = resource("secret_block");
 		public static final ResourceLocation SECRET_PRESSURE_PLATE = resource("secret_pressure_plate");
 		public static final ResourceLocation PLACEHOLDER_LOOT_CHEST = resource("placeholder_loot_chest");
+		public static final ResourceLocation DARK_AIR = resource("dark_air");
 
 
 		public static final IProperty<Boolean> OVERLAY = PropertyBool.create("overlay");

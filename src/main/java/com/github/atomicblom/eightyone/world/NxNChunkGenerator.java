@@ -1,5 +1,6 @@
 package com.github.atomicblom.eightyone.world;
 
+import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.util.Point2D;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
@@ -8,8 +9,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Rotation;
@@ -60,8 +63,40 @@ public class NxNChunkGenerator implements IChunkGenerator
 	{
 		rand.setSeed(x * 0x4f9939f508L + z * 0x1ef1565bd5L);
 		final ChunkPrimer primer = new ChunkPrimer();
+
+		IBlockState darkAir = BlockLibrary.dark_air.getDefaultState();
+
+		for (int blockX = 0; blockX < 16; ++blockX) {
+			for (int blockZ = 0; blockZ < 16; ++blockZ) {
+				for (int blockY = 0; blockY < BASE_HEIGHT-16; ++blockY) {
+					primer.setBlockState(blockX, blockY, blockZ, darkAir);
+				}
+			}
+		}
+
 		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
 		generateChunk(x, z, primer, tileEntitiesToAdd);
+
+		IBlockState defaultState = Blocks.AIR.getDefaultState();
+
+		for (int blockX = 0; blockX < 16; ++blockX) {
+			for (int blockZ = 0; blockZ < 16; ++blockZ) {
+				boolean hasRoom = false;
+				for (int blockY = BASE_HEIGHT-16; blockY <= 255 ; ++blockY) {
+					IBlockState blockState = primer.getBlockState(blockX, blockY, blockZ);
+
+					if (blockState != darkAir && blockState != defaultState) {
+						hasRoom = true;
+						break;
+					}
+				}
+				if (!hasRoom) {
+
+					primer.setBlockState(blockX, 255, blockZ, darkAir);
+
+				}
+			}
+		}
 
 		final Chunk chunk = new Chunk(world, primer, x, z);
 		for (final TileEntity tileEntity : tileEntitiesToAdd)
@@ -70,6 +105,7 @@ public class NxNChunkGenerator implements IChunkGenerator
 		}
 
 		chunk.generateSkylightMap();
+
 		return chunk;
 	}
 

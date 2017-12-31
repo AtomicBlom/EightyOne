@@ -5,6 +5,7 @@ import net.minecraft.block.material.Material;
 
 public class SecretMaterial extends Material {
     public SecretMaterial() {
+
         super(MapColor.AIR);
     }
 
