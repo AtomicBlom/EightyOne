@@ -65,13 +65,13 @@ public class PortalBlock extends Block implements ITileEntityProvider
 
 						Logger.info("Player touched the portal block.  Sending the player to dimension {}", Reference.DIMENSION_ID);
 
-						playerMP.mcServer.getPlayerList().transferPlayerToDimension(playerMP, Reference.DIMENSION_ID, EightyOneTeleporter.getTeleporterForDim(playerMP.mcServer, Reference.DIMENSION_ID));
+						playerMP.server.getPlayerList().transferPlayerToDimension(playerMP, Reference.DIMENSION_ID, EightyOneTeleporter.getTeleporterForDim(playerMP.server, Reference.DIMENSION_ID));
 
 						playerMP.setSpawnChunk(new BlockPos(playerMP), true, Reference.DIMENSION_ID);
 					} else {
 						if (!ForgeHooks.onTravelToDimension(playerMP, 0)) return false;
 
-						playerMP.mcServer.getPlayerList().transferPlayerToDimension(playerMP, 0, EightyOneTeleporter.getTeleporterForDim(playerMP.mcServer, 0));
+						playerMP.server.getPlayerList().transferPlayerToDimension(playerMP, 0, EightyOneTeleporter.getTeleporterForDim(playerMP.server, 0));
 					}
 				}
 			} else {

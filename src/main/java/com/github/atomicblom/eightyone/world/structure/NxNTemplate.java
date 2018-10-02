@@ -294,7 +294,7 @@ public class NxNTemplate extends Template
 
 			TileEntityChest tileEntityChest = new TileEntityChest();
 			ResourceLocation lootTableRL = new ResourceLocation(lootTable);
-			final ResourceLocation lootTableName = new ResourceLocation(lootTableRL.getResourceDomain(), "chests/" + lootTableRL.getResourcePath());
+			final ResourceLocation lootTableName = new ResourceLocation(lootTableRL.getNamespace(), "chests/" + lootTableRL.getPath());
 			TemplateManager.notifyLootTable(lootTableName);
 
 			tileEntityChest.setLootTable(lootTableName, r.nextLong());

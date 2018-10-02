@@ -88,7 +88,7 @@ public class DungeonBlock extends Block implements ITileEntityProvider
 	{
 		final IBlockState mimicBlockState = getMimicBlock(worldIn, pos);
 		if (mimicBlockState != null) {
-			mimicBlockState.getBlock().onEntityCollidedWithBlock(worldIn, pos, state, entityIn);
+			mimicBlockState.getBlock().onEntityCollision(worldIn, pos, state, entityIn);
 		}
 	}
 

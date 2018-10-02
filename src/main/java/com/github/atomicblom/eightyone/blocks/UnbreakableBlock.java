@@ -217,7 +217,7 @@ public class UnbreakableBlock extends Block
 	{
 		final IBlockState mimicBlockState = mimicStates[state.getValue(Reference.Blocks.VARIATION)];
 		if (mimicBlockState != null) {
-			mimicBlockState.getBlock().onEntityCollidedWithBlock(worldIn, pos, state, entityIn);
+			mimicBlockState.getBlock().onEntityCollision(worldIn, pos, state, entityIn);
 		}
 	}
 

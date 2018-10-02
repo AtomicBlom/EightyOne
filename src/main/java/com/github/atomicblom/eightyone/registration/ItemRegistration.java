@@ -44,7 +44,7 @@ public class ItemRegistration
 		final ResourceLocation registryName = block.getRegistryName();
 		registry.register(new ItemBlock(block)
 				.setRegistryName(registryName)
-				.setUnlocalizedName(registryName.toString())
+				.setTranslationKey(registryName.toString())
 		);
 	}
 }

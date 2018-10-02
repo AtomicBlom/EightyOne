@@ -28,7 +28,7 @@ public final class Reference {
 		public ItemStack _creativeTabIcon;
 
 		@Override
-		public ItemStack getTabIconItem() {
+		public ItemStack createIcon() {
 			return (_creativeTabIcon != null ? _creativeTabIcon : (_creativeTabIcon = new ItemStack(ItemLibrary.portal)));
 		}
 	};

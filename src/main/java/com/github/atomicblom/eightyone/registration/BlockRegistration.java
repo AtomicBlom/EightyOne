@@ -13,13 +13,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import java.util.List;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class BlockRegistration
 {
 	@SubscribeEvent
@@ -30,10 +32,10 @@ public class BlockRegistration
 		}
 	}
 
-	private static List<UnbreakableBlock> mimicBlocks = Lists.newArrayList();
+	private static final List<UnbreakableBlock> mimicBlocks = Lists.newArrayList();
 
 	@SubscribeEvent
-	public static void onRegisterBlocks(RegistryEvent.Register<Block> event) {
+	public static void onRegisterBlocks(Register<Block> event) {
 		final IForgeRegistry<Block> registry = event.getRegistry();
 
 		registerBlock(registry, new PortalBlock(), Reference.Blocks.PORTAL)
@@ -51,8 +53,8 @@ public class BlockRegistration
 		final String dungeonBlockRegistryName = Reference.Blocks.DUNGEON_BLOCK.toString();
 		final String secretBlockRegistryName = Reference.Blocks.SECRET_BLOCK.toString();
 
-		List<NBTTagCompound> dungeonStates = Lists.newArrayList();
-		List<NBTTagCompound> secretStates = Lists.newArrayList();
+		final List<NBTTagCompound> dungeonStates = Lists.newArrayList();
+		final List<NBTTagCompound> secretStates = Lists.newArrayList();
 
 		for (final NBTTagCompound mimicTagCompound : mimicBlockStates)
 		{
@@ -71,8 +73,8 @@ public class BlockRegistration
 		final ResourceLocation dungeonBlock = Reference.Blocks.DUNGEON_BLOCK;
 		for (int blockSlice = 0, blockId = 0; blockSlice < dungeonStates.size();
 		     blockSlice += 16, blockId++ ) {
-			UnbreakableBlock unbreakable = new UnbreakableBlock(dungeonStates, blockSlice);
-			registerBlock(registry, unbreakable, new ResourceLocation(dungeonBlock.getResourceDomain(), dungeonBlock.getResourceDomain() + "_" + blockId));
+			final UnbreakableBlock unbreakable = new UnbreakableBlock(dungeonStates, blockSlice);
+			registerBlock(registry, unbreakable, new ResourceLocation(dungeonBlock.getNamespace(), dungeonBlock.getPath() + '_' + blockId));
 
 			MinecraftForge.EVENT_BUS.post(new RegisterMimicBlockEvent(unbreakable));
 
@@ -89,7 +91,7 @@ public class BlockRegistration
 	{
 		registry.register(block
 				.setRegistryName(registryName)
-				.setUnlocalizedName(registryName.toString())
+				.setTranslationKey(registryName.toString())
 		);
 		return block;
 	}
