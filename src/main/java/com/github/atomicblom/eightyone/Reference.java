@@ -20,6 +20,7 @@ public final class Reference {
 	public static BlockRenderLayer CURRENT_RENDER_LAYER;
 
 	public static final int DIMENSION_ID = 81;
+	public static final int ORIGIN_DIMENSION_ID = 1;
 	public static final String WORLD_NAME = "labyrinth";
 
 	public static final ResourceLocation DUNGEON_RECIPE = resource("dungeon_recipe");

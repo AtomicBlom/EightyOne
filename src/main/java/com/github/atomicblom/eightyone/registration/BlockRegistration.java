@@ -45,7 +45,7 @@ public class BlockRegistration
 		registerBlock(registry, new PlaceholderLootChest(), Reference.Blocks.PLACEHOLDER_LOOT_CHEST);
 		registerBlock(registry, new SecretPressurePlate(), Reference.Blocks.SECRET_PRESSURE_PLATE);
 
-		registerBlock(registry, new DarkAirBlock(), Reference.Blocks.DARK_AIR);
+		// registerBlock(registry, new DarkAirBlock(), Reference.Blocks.DARK_AIR);
 
 
 		final Iterable<NBTTagCompound> mimicBlockStates = TemplateManager.catalogueMimicBlockStates();

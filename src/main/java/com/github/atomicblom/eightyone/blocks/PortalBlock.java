@@ -159,6 +159,35 @@ public class PortalBlock extends Block implements ITileEntityProvider
 		}
 	}
 
+	public static void attemptSendPlayer(Entity entity, boolean forcedEntry) {
+
+		if (entity.isDead || entity.world.isRemote) {
+			return;
+		}
+
+		if (entity.isRiding() || entity.isBeingRidden() || !entity.isNonBoss()) {
+			return;
+		}
+
+		if (!forcedEntry && entity.timeUntilPortal > 0) {
+			return;
+		}
+
+		// set a cooldown before this can run again
+		entity.timeUntilPortal = 10;
+
+		int destination = entity.dimension != Reference.DIMENSION_ID
+				? Reference.DIMENSION_ID : Reference.ORIGIN_DIMENSION_ID;
+
+		entity.changeDimension(destination, EightyOneTeleporter.getTeleporterForDim(entity.getServer(), destination));
+
+		if (destination == Reference.DIMENSION_ID && entity instanceof EntityPlayerMP) {
+			EntityPlayerMP playerMP = (EntityPlayerMP) entity;
+			// set respawn point for TF dimension to near the arrival portal
+			playerMP.setSpawnChunk(new BlockPos(playerMP), true, Reference.DIMENSION_ID);
+		}
+	}
+
 	@Override
 	public boolean hasTileEntity(IBlockState state)
 	{
