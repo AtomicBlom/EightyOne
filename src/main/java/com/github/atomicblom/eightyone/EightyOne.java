@@ -27,7 +27,7 @@ public class EightyOne
     public static EightyOne instance;
     private WorldType worldType;
 
-    public static boolean DEBUG_FORCE_ALLOW_PORTAL = true;
+    public static boolean DEBUG_FORCE_ALLOW_PORTAL = false;
     public static boolean DEBUG_SHOW_ROOM_INFO = true;
 
     public static final String IS_CI_BUILD = "@CI_BUILD@";

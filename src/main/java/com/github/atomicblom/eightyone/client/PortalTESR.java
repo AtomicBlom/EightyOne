@@ -64,7 +64,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 		bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
 		final int pass = MinecraftForgeClient.getRenderPass();
-		if (pass == 1) return;
+
 		GlStateManager.pushMatrix();
 		GlStateManager.translate(x, y, z);
 
@@ -92,8 +92,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 			GlStateManager.disableAlpha();
 		}
 
-		float yRotation = te.getYRotation() + partialTicks;
-
+		float yRotation = te.getYRotation() + partialTicks / 2;
 
 		long systemTime = Minecraft.getSystemTime();
 
@@ -119,13 +118,13 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 		float scale = 1;
 
 		//calculate heartbeat
-		final int shrinkStart = 2900;
+		final int shrinkStart = 2800;
 		final int shrinkEnd = 2950;
 		final int shrinkLength = shrinkEnd - shrinkStart;
 		final int expandStart = shrinkEnd;
 		final int expandEnd = 3000;
 		final int expandLength = expandEnd - expandStart;
-		final float expansionFactor = 50.0f;
+		final float expansionFactor = 20.0f;
 
 		if (currentPulseTime >= shrinkStart && currentPulseTime < shrinkEnd) {
 			scale = 1 - (currentPulseTime - shrinkStart) / (float)shrinkLength / expansionFactor;
@@ -144,7 +143,7 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 		scale = 1 + currentPulseTime / 3000.0f;
 		final float alpha = 1 - (currentPulseTime / 1000.0f);
 
-		if (alpha > 0 && pass == 0 && !te.isValid())
+		if (alpha > 0 && pass == 0 && te.isValid())
 		{
 			//Translucent Render Pass A - fill Z-Buffer
 			GlStateManager.enableBlend();
@@ -171,8 +170,6 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 
 		GlStateManager.popMatrix();
 
-
-
 		final TileEntityPortal.PortalProgressData[] originalProgressData = te.getProgressData();
 
 		if (originalProgressData != null && !te.isValid()) {
@@ -190,7 +187,6 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 
 			GlStateManager.enableBlend();
 			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			GlStateManager.enableAlpha();
 
 			double speed = 3.0f;
 
@@ -202,6 +198,8 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 			final long totalWorldTime = Minecraft.getSystemTime();
 			double seconds = (totalWorldTime /1000.0)*speed;
 			final BlockPos tePos = te.getPos();
+
+			GlStateManager.disableDepth();
 
 			for (TileEntityPortal.PortalProgressData progressData : progressDataEntries)
 			{
@@ -225,7 +223,6 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 					if (blockScale > 1)
 					{
 						alpha2 = 1 - ((blockScale - 1) * 5);
-
 					} else if (blockScale < 0.2)
 					{
 						alpha2 = ((blockScale) * 5);
@@ -235,20 +232,22 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 					alpha2 /= 2;
 				} else {
 					if (blockScale >= 1.5) continue;
-					if (blockScale <= 1) continue;
+
 
 					if (blockScale > 1)
 					{
 						alpha2 = 1 - ((blockScale - 1) * 2.5f);
-
 					}
+					if (blockScale <= 1) {
+						alpha2 = blockScale;
+						blockScale = 1.00f;
+					};
 
 					green = 0.25f;
 					red = 1;
 					blue = 0.25f;
 					alpha2 /= 2;
 				}
-
 
 				GlStateManager.color(
 						red,
@@ -263,27 +262,14 @@ public class PortalTESR extends TileEntitySpecialRenderer<TileEntityPortal>
 				GlStateManager.translate(progressData.pos.getX() - tePos.getX() + 0.5, progressData.pos.getY()- tePos.getY() + 0.5, progressData.pos.getZ() - tePos.getZ() + + 0.5);
 				GlStateManager.scale(blockScale, blockScale, blockScale);
 
-				GlStateManager.depthFunc(GL11.GL_LEQUAL);
-				GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0f);
-				GlStateManager.colorMask(false, false, false, false);
-
-				uploader.draw(cube);
-
-				GlStateManager.depthFunc(GL11.GL_EQUAL);
-				GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0.0f);
-				GlStateManager.colorMask(true, true, true, true);
-
 				uploader.draw(cube);
 
 				GlStateManager.popMatrix();
 			}
 
-			GlStateManager.depthFunc(GL11.GL_LEQUAL);
 			GlStateManager.disableBlend();
-			GlStateManager.disableAlpha();
+			GlStateManager.enableDepth();
 		}
-
-
 	}
 
 	private void renderFrame(WorldVertexBufferUploader uploader, float alpha)
