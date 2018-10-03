@@ -20,7 +20,7 @@ public final class Reference {
 	public static BlockRenderLayer CURRENT_RENDER_LAYER;
 
 	public static final int DIMENSION_ID = 81;
-	public static final int ORIGIN_DIMENSION_ID = 1;
+	public static final int ORIGIN_DIMENSION_ID = 0;
 	public static final String WORLD_NAME = "labyrinth";
 
 	public static final ResourceLocation DUNGEON_RECIPE = resource("dungeon_recipe");
@@ -46,7 +46,12 @@ public final class Reference {
 		public static final IProperty<Boolean> OVERLAY = PropertyBool.create("overlay");
 		public static final IUnlistedProperty<IBlockState> MIMIC = new MimicBlockProperty();
 		public static final IProperty<Integer> VARIATION = PropertyInteger.create("variation", 0, 15);
+	}
 
+	public static final class TileEntities {
+		public static final ResourceLocation PORTAL = resource("te_portal");
+		public static final ResourceLocation DUNGEON_BLOCK = resource("te_dungeon_block");
+		public static final ResourceLocation PLACEHOLDER_LOOT_CHEST = resource("te_placeholder_loot_chest");
 	}
 
 	private Reference() {}

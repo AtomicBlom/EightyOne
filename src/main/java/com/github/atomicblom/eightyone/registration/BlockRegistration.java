@@ -82,9 +82,9 @@ public class BlockRegistration
 		}
 
 
-		GameRegistry.registerTileEntity(TileEntityPortal.class, "portal");
-		GameRegistry.registerTileEntity(TileEntityDungeonBlock.class, "dungeon_block");
-		GameRegistry.registerTileEntity(TileEntityPlaceholderLootChest.class, "placeholder_loot_chest");
+		GameRegistry.registerTileEntity(TileEntityPortal.class, Reference.TileEntities.PORTAL);
+		GameRegistry.registerTileEntity(TileEntityDungeonBlock.class, Reference.TileEntities.DUNGEON_BLOCK);
+		GameRegistry.registerTileEntity(TileEntityPlaceholderLootChest.class, Reference.TileEntities.PLACEHOLDER_LOOT_CHEST);
 	}
 
 	private static Block registerBlock(IForgeRegistry<Block> registry, Block block, ResourceLocation registryName)

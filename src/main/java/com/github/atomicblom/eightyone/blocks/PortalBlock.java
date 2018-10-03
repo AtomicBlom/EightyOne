@@ -28,6 +28,7 @@ import java.util.Random;
 
 public class PortalBlock extends Block implements ITileEntityProvider
 {
+	@SuppressWarnings("OverridableMethodCallDuringObjectConstruction")
 	public PortalBlock()
 	{
 		super(Material.ROCK, MapColor.GRAY);
@@ -42,124 +43,20 @@ public class PortalBlock extends Block implements ITileEntityProvider
 		{
 			return false;
 		}
-		TileEntityPortal tileEntityPortal = (TileEntityPortal)tileEntity;
+		final TileEntityPortal tileEntityPortal = (TileEntityPortal)tileEntity;
 
 		if (player.isSneaking()) return false;
 
-		if (!player.isRiding() && player.getPassengers().isEmpty() && player.timeUntilPortal <= 0) {
-			if (!tileEntityPortal.checkValidStructure()) {
-				return false;
-			}
-
-			if (player instanceof EntityPlayerMP) {
-				final EntityPlayerMP playerMP = (EntityPlayerMP) player;
-
-				if (playerMP.timeUntilPortal > 0) {
-					// do not switch dimensions if the player has any time on this thinger
-					playerMP.timeUntilPortal = 10;
-				} else {
-
-					// send to the labyrinth
-					if (playerMP.dimension != Reference.DIMENSION_ID) {
-						if (!ForgeHooks.onTravelToDimension(playerMP, Reference.DIMENSION_ID)) return false;
-
-						Logger.info("Player touched the portal block.  Sending the player to dimension {}", Reference.DIMENSION_ID);
-
-						playerMP.server.getPlayerList().transferPlayerToDimension(playerMP, Reference.DIMENSION_ID, EightyOneTeleporter.getTeleporterForDim(playerMP.server, Reference.DIMENSION_ID));
-
-						playerMP.setSpawnChunk(new BlockPos(playerMP), true, Reference.DIMENSION_ID);
-					} else {
-						if (!ForgeHooks.onTravelToDimension(playerMP, 0)) return false;
-
-						playerMP.server.getPlayerList().transferPlayerToDimension(playerMP, 0, EightyOneTeleporter.getTeleporterForDim(playerMP.server, 0));
-					}
-				}
-			} else {
-				if (player.dimension != Reference.DIMENSION_ID) {
-					changeDimension(player, Reference.DIMENSION_ID);
-				} else {
-					changeDimension(player, 0);
-				}
-			}
+		if (!tileEntityPortal.checkValidStructure()) {
+			return false;
 		}
+
+		attemptSendPlayer(player);
+
 		return true;
 	}
 
-	/**
-	 * [VanillaCopy] Entity.changeDimension. Relevant edits noted.
-	 * `this` -> `toTeleport`
-	 * return value Entity -> void
-	 */
-	//@SuppressWarnings("unused")
-	private void changeDimension(Entity entityToTeleport, int newDimensionId) {
-		if (!entityToTeleport.world.isRemote && !entityToTeleport.isDead) {
-			if (!ForgeHooks.onTravelToDimension(entityToTeleport, newDimensionId)) return;
-			entityToTeleport.world.profiler.startSection("changeDimension");
-			final MinecraftServer minecraftserver = entityToTeleport.getServer();
-			final int currentDimensionId = entityToTeleport.dimension;
-			final WorldServer currentDimensionWorldServer = minecraftserver.getWorld(currentDimensionId);
-			WorldServer newDimensionWorldServer = minecraftserver.getWorld(newDimensionId);
-			entityToTeleport.dimension = newDimensionId;
-
-			if (currentDimensionId == 1 && newDimensionId == 1) {
-				newDimensionWorldServer = minecraftserver.getWorld(0);
-				entityToTeleport.dimension = 0;
-			}
-
-			entityToTeleport.world.removeEntity(entityToTeleport);
-			entityToTeleport.isDead = false;
-			entityToTeleport.world.profiler.startSection("reposition");
-			final BlockPos blockpos;
-
-			if (newDimensionId == 1) {
-				blockpos = newDimensionWorldServer.getSpawnCoordinate();
-			} else {
-				double posX = entityToTeleport.posX;
-				double posZ = entityToTeleport.posZ;
-
-				// Tf - remove 8x scaling for nether
-				posX = MathHelper.clamp(posX, newDimensionWorldServer.getWorldBorder().minX() + 16.0D, newDimensionWorldServer.getWorldBorder().maxX() - 16.0D);
-				posZ = MathHelper.clamp(posZ, newDimensionWorldServer.getWorldBorder().minZ() + 16.0D, newDimensionWorldServer.getWorldBorder().maxZ() - 16.0D);
-
-				posX = MathHelper.clamp((int) posX, -29999872, 29999872);
-				posZ = MathHelper.clamp((int) posZ, -29999872, 29999872);
-				final float f = entityToTeleport.rotationYaw;
-				entityToTeleport.setLocationAndAngles(posX, entityToTeleport.posY, posZ, 90.0F, 0.0F);
-				final Teleporter teleporter = EightyOneTeleporter.getTeleporterForDim(minecraftserver, newDimensionId); // TF - custom teleporter
-				teleporter.placeInExistingPortal(entityToTeleport, f);
-				blockpos = new BlockPos(entityToTeleport);
-			}
-
-			currentDimensionWorldServer.updateEntityWithOptionalForce(entityToTeleport, false);
-			entityToTeleport.world.profiler.endStartSection("reloading");
-			final Entity entity = EntityList.newEntity(entityToTeleport.getClass(), newDimensionWorldServer);
-
-			if (entity != null) {
-				entity.copyDataFromOld(entityToTeleport);
-
-				if (currentDimensionId == 1 && newDimensionId == 1) {
-					final BlockPos blockpos1 = newDimensionWorldServer.getTopSolidOrLiquidBlock(newDimensionWorldServer.getSpawnPoint());
-					entity.moveToBlockPosAndAngles(blockpos1, entity.rotationYaw, entity.rotationPitch);
-				} else {
-					entity.setLocationAndAngles(blockpos.getX(), blockpos.getY(), blockpos.getZ(), entity.rotationYaw, entity.rotationPitch);
-				}
-
-				final boolean flag = entity.forceSpawn;
-				entity.forceSpawn = true;
-				newDimensionWorldServer.spawnEntity(entity);
-				entity.forceSpawn = flag;
-				newDimensionWorldServer.updateEntityWithOptionalForce(entity, false);
-			}
-
-			entityToTeleport.isDead = true;
-			entityToTeleport.world.profiler.endSection();
-			currentDimensionWorldServer.resetUpdateEntityTick();
-			newDimensionWorldServer.resetUpdateEntityTick();
-			entityToTeleport.world.profiler.endSection();
-		}
-	}
-
-	public static void attemptSendPlayer(Entity entity, boolean forcedEntry) {
+	private static void attemptSendPlayer(Entity entity) {
 
 		if (entity.isDead || entity.world.isRemote) {
 			return;
@@ -169,21 +66,19 @@ public class PortalBlock extends Block implements ITileEntityProvider
 			return;
 		}
 
-		if (!forcedEntry && entity.timeUntilPortal > 0) {
+		if (entity.timeUntilPortal > 0) {
 			return;
 		}
 
 		// set a cooldown before this can run again
 		entity.timeUntilPortal = 10;
 
-		int destination = entity.dimension != Reference.DIMENSION_ID
-				? Reference.DIMENSION_ID : Reference.ORIGIN_DIMENSION_ID;
+		final int destination = entity.dimension == Reference.DIMENSION_ID ? Reference.ORIGIN_DIMENSION_ID : Reference.DIMENSION_ID;
 
 		entity.changeDimension(destination, EightyOneTeleporter.getTeleporterForDim(entity.getServer(), destination));
 
 		if (destination == Reference.DIMENSION_ID && entity instanceof EntityPlayerMP) {
-			EntityPlayerMP playerMP = (EntityPlayerMP) entity;
-			// set respawn point for TF dimension to near the arrival portal
+			final EntityPlayerMP playerMP = (EntityPlayerMP) entity;
 			playerMP.setSpawnChunk(new BlockPos(playerMP), true, Reference.DIMENSION_ID);
 		}
 	}
