@@ -1,8 +1,8 @@
-package com.github.atomicblom.eightyone.client;
+package com.github.atomicblom.eightyone.client.tesrmodels;
 
 import net.minecraft.client.renderer.BufferBuilder;
 
-class ReusableBufferBuilder extends BufferBuilder
+public class ReusableBufferBuilder extends BufferBuilder
 {
 	public ReusableBufferBuilder(int bufferSizeIn) {
 		super(bufferSizeIn);

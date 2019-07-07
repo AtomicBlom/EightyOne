@@ -17,8 +17,6 @@ public final class Reference {
 	public static final String MOD_NAME = "Eighty One";
 	public static final String VERSION = "@MOD_VERSION@";
 
-	public static BlockRenderLayer CURRENT_RENDER_LAYER;
-
 	public static final int DIMENSION_ID = 81;
 	public static final int ORIGIN_DIMENSION_ID = 0;
 	public static final String WORLD_NAME = "labyrinth";

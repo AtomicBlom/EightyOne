@@ -106,8 +106,7 @@ public class PortalBlock extends Block implements ITileEntityProvider
 	@Override
 	public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer)
 	{
-		Reference.CURRENT_RENDER_LAYER = layer;
-		return (layer == BlockRenderLayer.SOLID || layer == BlockRenderLayer.TRANSLUCENT);
+		return layer == BlockRenderLayer.SOLID;
 	}
 
 	@Override

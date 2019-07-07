@@ -1,18 +1,17 @@
 package com.github.atomicblom.eightyone.world;
 
-import com.github.atomicblom.eightyone.BlockLibrary;
 import com.github.atomicblom.eightyone.Logger;
 import com.github.atomicblom.eightyone.util.Point2D;
 import com.github.atomicblom.eightyone.util.TemplateCharacteristics;
-import com.github.atomicblom.eightyone.world.structure.*;
+import com.github.atomicblom.eightyone.world.structure.RoomPurpose;
+import com.github.atomicblom.eightyone.world.structure.RoomTemplate;
+import com.github.atomicblom.eightyone.world.structure.Shape;
+import com.github.atomicblom.eightyone.world.structure.TemplateManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Rotation;
@@ -25,6 +24,7 @@ import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
+
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
@@ -61,42 +61,11 @@ public class NxNChunkGenerator implements IChunkGenerator
 	@Override
 	public Chunk generateChunk(int x, int z)
 	{
-		rand.setSeed(x * 0x4f9939f508L + z * 0x1ef1565bd5L);
+		rand.setSeed(this.seed + x * 0x4f9939f508L + z * 0x1ef1565bd5L);
 		final ChunkPrimer primer = new ChunkPrimer();
-
-//		IBlockState darkAir = BlockLibrary.dark_air.getDefaultState();
-//		IBlockState stone = Blocks.STONE.getDefaultState();
-//
-//		for (int blockX = 0; blockX < 16; ++blockX) {
-//			for (int blockZ = 0; blockZ < 16; ++blockZ) {
-//				for (int blockY = 0; blockY < BASE_HEIGHT-16; ++blockY) {
-//					primer.setBlockState(blockX, blockY, blockZ, stone);
-//				}
-//			}
-//		}
 
 		final List<TileEntity> tileEntitiesToAdd = Lists.newArrayList();
 		generateChunk(x, z, primer, tileEntitiesToAdd);
-
-//		IBlockState defaultState = Blocks.AIR.getDefaultState();
-//		for (int blockX = 0; blockX < 16; ++blockX) {
-//			for (int blockZ = 0; blockZ < 16; ++blockZ) {
-//				boolean hasRoom = false;
-//				for (int blockY = BASE_HEIGHT-16; blockY <= 255 ; ++blockY) {
-//					IBlockState blockState = primer.getBlockState(blockX, blockY, blockZ);
-//
-//					if (blockState != darkAir && blockState != defaultState) {
-//						hasRoom = true;
-//						break;
-//					}
-//				}
-//				if (!hasRoom) {
-//
-//					primer.setBlockState(blockX, 255, blockZ, darkAir);
-//
-//				}
-//			}
-//		}
 
 		final Chunk chunk = new Chunk(world, primer, x, z);
 		for (final TileEntity tileEntity : tileEntitiesToAdd)
@@ -112,6 +81,8 @@ public class NxNChunkGenerator implements IChunkGenerator
 	@Override
 	public void populate(int chunkX, int chunkZ)
 	{
+		//Each chunk could potentially have between 4 and 9 rooms.
+		//In order to only generate the parts we need, we start from the chunk's origin corner.
 		final int chunkCornerX  = chunkX << 4;
 		final int chunkCornerZ  = chunkZ << 4;
 
@@ -119,6 +90,8 @@ public class NxNChunkGenerator implements IChunkGenerator
 		final int nextChunkZ = chunkCornerZ + 15;
 
 		final Room cornerRoom = getRoomAt(chunkCornerX - 10, chunkCornerZ - 10);
+
+		//Now iterate over the rooms 9 blocks wide with 1 spacer block.
 		for (int roomX = cornerRoom.getX(); roomX < nextChunkX + 10; roomX += 10) {
 			for (int roomZ = cornerRoom.getZ(); roomZ < nextChunkZ + 10; roomZ += 10) {
 

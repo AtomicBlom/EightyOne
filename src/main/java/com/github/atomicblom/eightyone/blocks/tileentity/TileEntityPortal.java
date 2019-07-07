@@ -10,20 +10,17 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import java.util.Dictionary;
+
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.atomicblom.eightyone.EightyOne.DEBUG_FORCE_ALLOW_PORTAL;
-
 public class TileEntityPortal extends TileEntity implements ITickable
 {
-	private float yRotation;
+	private float artifactRotation;
 	private long pulse;
-	private float pulseRotation;
+	private float shadowRotation;
 
 	@Override
 	public boolean hasFastRenderer()
@@ -31,12 +28,12 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		return super.hasFastRenderer();
 	}
 
-	public float getYRotation() {
-		return yRotation;
+	public float getArtifactRotation() {
+		return artifactRotation;
 	}
 
-	public void setYRotation(float yRotation) {
-		this.yRotation = yRotation;
+	public void setArtifactRotation(float artifactRotation) {
+		this.artifactRotation = artifactRotation;
 	}
 
 	public void setPulse(long pulse)
@@ -49,14 +46,14 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		return pulse;
 	}
 
-	public void setPulseRotation(float pulseRotation)
+	public void setShadowRotation(float shadowRotation)
 	{
-		this.pulseRotation = pulseRotation;
+		this.shadowRotation = shadowRotation;
 	}
 
-	public float getPulseRotation()
+	public float getShadowRotation()
 	{
-		return pulseRotation;
+		return shadowRotation;
 	}
 
 	AxisAlignedBB axisAlignedBB;
@@ -77,16 +74,17 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		return pass == 0 || pass == 1;
 	}
 
-	private int[][] cornerOffsets = {
-			{-4, 0, -4},
-			{4, 0, -4},
-			{-4, 0, 4},
-			{4, 0, 4},
-			{-4, 5, -4},
-			{4, 5, -4},
-			{-4, 5, 4},
-			{4, 5, 4}
-	};
+	// For reference
+//	private int[][] cornerOffsets = {
+//			{-4, 0, -4},
+//			{4, 0, -4},
+//			{-4, 0, 4},
+//			{4, 0, 4},
+//			{-4, 5, -4},
+//			{4, 5, -4},
+//			{-4, 5, 4},
+//			{4, 5, 4}
+//	};
 
 	private Boolean isValid = null;
 	public boolean isValid() {
@@ -118,51 +116,6 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		VerticalPillar, LowerRow, UpperRow, Corner
 	}
 
-	public static class PortalProgressData {
-		private final BlockType type;
-		public final BlockPos pos;
-
-		public final int renderSet;
-		public boolean currentlyValid = false;
-		public boolean currentlyAir = true;
-		public double distanceFromPlayer;
-		public Block currentBlock;
-		private IBlockState currentBlockState;
-
-		public PortalProgressData(BlockType type, BlockPos pos, int renderSet)
-		{
-			this.type = type;
-			this.pos = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
-			this.renderSet = 21 - renderSet;
-		}
-
-		public boolean checkBlock(Block expectedBlock) {
-			if (currentlyAir) { return false; }
-			currentlyValid = false;
-			currentlyAir = false;
-			if (expectedBlock == null)
-			{
-				currentlyAir = true;
-				return false;
-			}
-
-			if (currentBlock == expectedBlock) {
-				currentlyValid = true;
-			}
-			return currentlyValid;
-		}
-
-		public void updateCurrentBlock(World world)
-		{
-			currentBlockState = world.getBlockState(pos);
-			currentBlock = currentBlockState.getBlock();
-			currentlyAir = currentBlock.isAir(currentBlockState, world, pos);
-			if (currentlyAir) {
-				currentlyValid = false;
-			}
-		}
-	}
-
 	private PortalProgressData[] progressData;
 	public PortalProgressData[] getProgressData() {
 		return progressData;
@@ -192,18 +145,19 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		}
 
 		//First instance of Corner
-		Block cornerBlock = null;
+		Block cornerBlock = Blocks.AIR;
 		int cornerBlockCount = 0;
 		//First instance of UpperRow
-		Block upperRowBlock = null;
+		Block upperRowBlock = Blocks.AIR;
 		int upperRowBlockCount = 0;
 		//First instance of LowerRow
-		Block lowerRowBlock = null;
+		Block lowerRowBlock = Blocks.AIR;
 		int lowerRowBlockCount = 0;
 		//First instance of VerticalPillar
-		Block verticalPillarBlock = null;
+		Block verticalPillarBlock = Blocks.AIR;
 		int verticalPillarBlockCount = 0;
 
+		//Calculate the majority blocks for each of the parts.
 		for (int i = 0; i < progressData.length; ++i) {
 			final PortalProgressData currentProgressData = progressData[i];
 			if (currentProgressData == null) continue;
@@ -211,7 +165,7 @@ public class TileEntityPortal extends TileEntity implements ITickable
 			if (currentProgressData.currentlyAir) continue;
 			Block block = currentProgressData.currentBlock;
 
-			switch (currentProgressData.type) {
+			switch (currentProgressData.getType()) {
 				case Corner:
 					final AtomicInteger possibleCornerBlocksCountInt = possibleCornerBlocks.computeIfAbsent(block, (x) -> new AtomicInteger());
 					final int possibleCornerBlocksCount = possibleCornerBlocksCountInt.incrementAndGet();
@@ -250,8 +204,8 @@ public class TileEntityPortal extends TileEntity implements ITickable
 		boolean isValid = true;
 		for (int i = 0; i < progressData.length; ++i) {
 			if (progressData[i] == null) continue;
-			Block checkBlock = null;
-			switch (progressData[i].type) {
+			Block checkBlock = Blocks.AIR;
+			switch (progressData[i].getType()) {
 				case Corner:
 					checkBlock = cornerBlock; break;
 				case VerticalPillar:
@@ -261,7 +215,6 @@ public class TileEntityPortal extends TileEntity implements ITickable
 				case UpperRow:
 					checkBlock = upperRowBlock; break;
 			}
-			if (checkBlock == null) continue;
 			isValid &= progressData[i].checkBlock(checkBlock);
 		}
 
